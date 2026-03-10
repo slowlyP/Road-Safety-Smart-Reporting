@@ -19,7 +19,9 @@
 
 ### 김도균
 **Notion**
+
 **Jira**
+
 ### 송명근
 **Notion** 
 🔗 https://www.notion.so/LMS-AI-31fb7dab40e480de8a2be772af9c9f16?source=copy_link
@@ -30,5 +32,6 @@
 ### 임효정
 **Notion**
 🔗 https://www.notion.so/31f651711b538048b691e6c57be7f1eb?source=copy_link
+
 **Jira**
 🔗 https://ggug0125-1773102543079.atlassian.net/jira/software/projects/KAN/boards/1
