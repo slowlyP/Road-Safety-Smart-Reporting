@@ -10,11 +10,9 @@
 
 ### 김도하
 **Notion**
-프로젝트 문서 및 학습 기록 관리
 🔗 https://www.notion.so/doreen1004/AI-31fbec735c378068834eec617ff1a984?source=copy_link
 
 **Jira**
-프로젝트 업무 관리 및 이슈 트래킹
 🔗 https://doha.atlassian.net/jira/software/projects/AI/summary
 
 ### 김도균
