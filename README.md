@@ -1,45 +1,34 @@
-# AI Accident Detection System
-스마트폰 카메라로 촬영된 주행 영상을 기반으로 AI가 사고 및 이상징후를 감지하고 분석하는 시스템입니다.
-AI 모델을 통해 사고 발생 여부를 1차적으로 판단하며, 사고가 발생하지 않은 경우에도 향후 사고 가능성을 확률 형태로 예측합니다.
+# AI 프로젝트 협업 관리
 
-또한 WebSocket 기반 실시간 알림 기능을 통해 이상 상황을 사용자에게 즉시 전달하고, 분석 결과를 시각화하여 직관적으로 확인할 수 있도록 하는 웹 서비스 프로젝트입니다.
-
----
-
-## 주요 기능
-- AI 기반 사고 및 이상징후 감지
-- 사고 발생 여부 판단 및 위험도 분석
-- 스마트폰 영상 업로드 및 영상 관리
-- WebSocket 기반 실시간 알림 기능
-- 사고 분석 결과 시각화
-- 사용자 및 관리자 기능 제공
+본 저장소는 AI 프로젝트 협업 및 업무 관리 도구(Notion, Jira) 링크를 정리한 문서입니다.
+팀원별 프로젝트 관리 페이지를 통해 업무 진행 상황, 일정 관리, 협업 기록을 확인할 수 있습니다.
 
 ---
 
-## 기술 스택
+## 평가 시험 링크 
+팀원별 협업 관리 링크
 
-**AI**
-- Python
-- TensorFlow / PyTorch
-- OpenCV
-**Backend**
-- Python (Flask / FastAPI)
-**Frontend**
-- HTML / CSS / JavaScript
-- React (optional)
-**Database**
-- MySQL
-**Real-time Communication**
-- WebSocket
+### 김도하
+**Notion**
+프로젝트 문서 및 학습 기록 관리
+🔗 https://www.notion.so/doreen1004/AI-31fbec735c378068834eec617ff1a984?source=copy_link
 
----
+**Jira**
+프로젝트 업무 관리 및 이슈 트래킹
+🔗 https://doha.atlassian.net/jira/software/projects/AI/summary
 
-## Branches 구조
-```
-main
- ├ feature-ai : AI
- ├ feature-auth :  회원관리
- ├ feature-video :  영상
- ├ feature-db : DB
- └ feature-frontend : 프론트엔드
-```
+### 김도균
+**Notion**
+**Jira**
+### 송명근
+**Notion** 
+🔗 https://www.notion.so/LMS-AI-31fb7dab40e480de8a2be772af9c9f16?source=copy_link
+
+**Jira**
+🔗 https://slowly.atlassian.net/jira/software/projects/LA/boards/36
+
+### 임효정
+**Notion**
+🔗 https://www.notion.so/31f651711b538048b691e6c57be7f1eb?source=copy_link
+**Jira**
+🔗 https://ggug0125-1773102543079.atlassian.net/jira/software/projects/KAN/boards/1
