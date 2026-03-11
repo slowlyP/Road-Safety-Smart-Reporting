@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도로 위험물 신고 시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="report-wrapper">
+        <header>
+            <h1><i class="fa-solid fa-triangle-exclamation"></i> 도로 위험 신고</h1>
+            <p>AI가 분석하여 즉시 알림을 발송합니다.</p>
+        </header>
+
+        <form id="reportForm">
+            <section class="form-section">
+                <h3><i class="fa-solid fa-camera"></i> 사진 및 영상 첨부</h3>
+                <div id="drop-zone" class="upload-box">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>파일을 여기로 끌어다 놓거나 클릭하세요</p>
+                    <span class="file-hint">(차량 파편, 낙석 등의 이미지를 권장합니다)</span>
+                    <input type="file" id="fileInput" name="files" accept="image/*,video/*" multiple hidden>
+                </div>
+                <div id="file-preview" class="preview-container"></div>
+            </section>
+
+            <section class="form-section">
+                <h3><i class="fa-solid fa-location-dot"></i> 발생 위치</h3>
+                <div class="location-group">
+                    <input type="text" id="location_text" name="location_text" readonly placeholder="위치 버튼을 눌러주세요">
+                    <button type="button" id="getLocationBtn" class="btn-secondary">내 위치 확인</button>
+                </div>
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+            </section>
+
+            <section class="form-section">
+                <h3><i class="fa-solid fa-pen-to-square"></i> 신고 정보</h3>
+                <div class="input-group">
+                    <label>제목</label>
+                    <input type="text" name="title" required placeholder="예: 2차선 도로에 큰 돌이 떨어져 있음">
+                </div>
+                
+                <div class="input-group">
+                    <label>상세 내용</label>
+                    <textarea name="content" id="content-area" rows="6" placeholder="추가 상황 설명을 적어주세요"></textarea>
+                </div>
+            </section>
+
+            <button type="submit" class="btn-primary">신고 제출하기</button>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/report.js') }}"></script>
+</body>
+</html>
