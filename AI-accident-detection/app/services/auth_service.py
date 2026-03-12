@@ -13,9 +13,6 @@
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from datetime import datetime
-from werkzeug.security import check_password_hash
-from app.repositories.role_request_repository import RoleRequestRepository
 from app.repositories.user_repository import UserRepository
 from app.common.exceptions import (
     ValidationException,
@@ -153,62 +150,3 @@ class AuthService:
             raise ValidationException("사용자 정보를 찾을 수 없습니다.")
 
         return user
-
-    @staticmethod
-    def request_admin_role(user_id, reason):
-
-        RoleRequestRepository.create_request(
-            user_id=user_id,
-            reason=reason
-        )
-
-    @staticmethod
-    def update_profile(user_id, data):
-        """
-        내 정보 수정 처리
-        """
-        user = UserRepository.get_user_by_id(user_id)
-
-        if not user:
-            raise ValidationException("사용자 정보를 찾을 수 없습니다.")
-
-        email = data.get("email")
-        name = data.get("name")
-
-        # 이메일 중복 검사
-        if email and email != user.email:
-            existing_user = UserRepository.get_user_by_email(email)
-            if existing_user:
-                raise ValidationException("이미 사용 중인 이메일입니다.")
-
-        updated_user = UserRepository.update_user(
-            user,
-            email=email,
-            name=name
-        )
-
-        return updated_user
-
-    @staticmethod
-    def delete_account(user_id, password):
-        """
-        회원 탈퇴 처리
-        비밀번호 확인 후 deleted_at에 시간 저장
-        """
-        user = UserRepository.get_user_by_id(user_id)
-
-        if not user:
-            raise ValidationException("사용자 정보를 찾을 수 없습니다.")
-
-        if not password:
-            raise ValidationException("비밀번호를 입력해주세요.")
-
-        if not check_password_hash(user.password_hash, password):
-            raise UnauthorizedException("비밀번호가 올바르지 않습니다.")
-
-        deleted_user = UserRepository.soft_delete_user(
-            user=user,
-            deleted_at=datetime.now()
-        )
-
-        return deleted_user
