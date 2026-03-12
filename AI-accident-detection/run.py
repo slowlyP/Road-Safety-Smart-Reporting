@@ -1,0 +1,12 @@
+"""
+Flask 서버 실행 파일
+"""
+
+# Flask 앱 생성
+from app import create_app
+
+app = create_app()
+
+# 서버 실행
+if __name__ == "__main__":
+    app.run(host="0.0.0.0",port=5000,debug=True)
