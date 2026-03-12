@@ -13,7 +13,7 @@
         <li><a href="{{ url_for('main.index') }}#alert">알림</a></li>
         <li><a href="{{ url_for('main.index') }}#contact">문의</a></li>
         <li><a href="#">탐지 현황</a></li>
-        <li><a href="#" class="highlight-link">신고하기</a></li>
+        <li><a href="{{ url_for('report.create_report_page') }}" class="highlight-link">신고하기</a></li>
 
         {% if is_admin %}
           <li><a href="#" class="admin-link">대시보드</a></li>
