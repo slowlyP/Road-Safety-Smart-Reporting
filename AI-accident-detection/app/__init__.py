@@ -10,26 +10,43 @@ from flask import Flask
 from .config import Config
 from .extensions import db, migrate
 
+
 def create_app():
     """
     Flask 앱 생성 함수
     """
+
     # Flask 애플리케이션 생성
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder="templates",
+        static_folder="static"
+    )
 
     # config.py 설정 적용
     app.config.from_object(Config)
 
-    # DB 연결 초기화
+    # -------------------------
+    # DB 초기화
+    # -------------------------
     db.init_app(app)
 
     # migration 초기화
     migrate.init_app(app, db)
 
-    # 모델 import
-    # 모델을 여기서 import 해야
-    # Flask-Migrate가 테이블을 인식한다
+    # -------------------------
+    # 모델 import (Migration 인식용)
+    # -------------------------
     with app.app_context():
-        from app.models import User
+        from . import models
+
+    # -------------------------
+    # 블루프린트 등록
+    # -------------------------
+    from app.api.auth_routes import auth_bp
+    from app.api.main_routes import main_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(main_bp)
 
     return app
