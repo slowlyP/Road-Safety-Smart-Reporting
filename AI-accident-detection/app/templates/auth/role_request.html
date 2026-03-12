@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}관리자 권한 신청 | 404 R·N·F AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+  <div class="auth-container">
+    <div class="auth-left">
+      <p class="auth-badge">관리자 권한 신청</p>
+      <h1>권한 신청</h1>
+      <p class="auth-desc">
+        관리자 기능이 필요한 사유를 작성하면<br>
+        검토 후 승인 여부가 결정됩니다.
+      </p>
+    </div>
+
+    <div class="auth-card">
+      <h2>관리자 권한 신청</h2>
+      <p class="auth-subtext">권한이 필요한 이유를 구체적으로 작성해주세요.</p>
+
+      <form id="roleRequestForm" class="auth-form">
+        <div class="form-group">
+          <label for="request_reason">신청 사유</label>
+          <textarea
+            id="request_reason"
+            name="request_reason"
+            class="form-textarea"
+            rows="6"
+            placeholder="관리자 권한이 필요한 이유를 작성해주세요."
+            required
+          ></textarea>
+        </div>
+
+        <p id="roleMessage" class="form-message"></p>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn">
+          신청하기
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/role_request.js') }}"></script>
+{% endblock %}

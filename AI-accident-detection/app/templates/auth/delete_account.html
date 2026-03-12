@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}회원 탈퇴 | 404 R·N·F AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+  <div class="auth-container">
+    <div class="auth-left">
+      <p class="auth-badge">회원 정보 관리</p>
+      <h1>회원 탈퇴</h1>
+      <p class="auth-desc">
+        회원 탈퇴 시 계정은 비활성화 처리되며<br>
+        일부 정보는 복구가 어려울 수 있습니다.
+      </p>
+    </div>
+
+    <div class="auth-card">
+      <h2>회원 탈퇴</h2>
+      <p class="auth-subtext">본인 확인을 위해 비밀번호를 입력해주세요.</p>
+
+      <form id="deleteAccountForm" class="auth-form">
+        <div class="form-group">
+          <label for="password">비밀번호 확인</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="비밀번호 입력"
+            required
+          >
+        </div>
+
+        <p id="deleteAccountMessage" class="form-message"></p>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn" style="background:#d93030;">
+          회원 탈퇴
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("deleteAccountForm");
+  if (!form) return;
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const password = document.getElementById("password").value.trim();
+    const messageBox = document.getElementById("deleteAccountMessage");
+
+    if (!confirm("정말 회원 탈퇴를 진행하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/auth/delete-account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          password: password
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        messageBox.textContent = result.message;
+        messageBox.style.color = "#4ade80";
+
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      } else {
+        messageBox.textContent = result.message || "회원 탈퇴에 실패했습니다.";
+        messageBox.style.color = "#ff8c5a";
+      }
+    } catch (error) {
+      messageBox.textContent = "서버 요청 중 오류가 발생했습니다.";
+      messageBox.style.color = "#ff8c5a";
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}내 정보 수정 | 404 R·N·F AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+  <div class="auth-container">
+    <div class="auth-left">
+      <p class="auth-badge">회원 정보 관리</p>
+      <h1>내 정보 수정</h1>
+      <p class="auth-desc">
+        이름과 이메일 등 내 정보를 수정할 수 있습니다.
+      </p>
+    </div>
+
+    <div class="auth-card">
+      <h2>내 정보 수정</h2>
+      <p class="auth-subtext">변경할 정보를 입력해주세요.</p>
+
+      <form id="updateProfileForm" class="auth-form">
+        <div class="form-group">
+          <label for="username">아이디</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value="{{ user.username }}"
+            disabled
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email">이메일</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ user.email }}"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="name">이름</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value="{{ user.name or '' }}"
+          >
+        </div>
+
+        <p id="updateProfileMessage" class="form-message"></p>
+
+        <button type="submit" class="btn btn-primary auth-submit-btn">
+          수정하기
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("updateProfileForm");
+  if (!form) return;
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const name = document.getElementById("name").value.trim();
+    const messageBox = document.getElementById("updateProfileMessage");
+
+    try {
+      const response = await fetch("/auth/update-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email,
+          name: name
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        messageBox.textContent = result.message;
+        messageBox.style.color = "#4ade80";
+      } else {
+        messageBox.textContent = result.message || "정보 수정에 실패했습니다.";
+        messageBox.style.color = "#ff8c5a";
+      }
+    } catch (error) {
+      messageBox.textContent = "서버 요청 중 오류가 발생했습니다.";
+      messageBox.style.color = "#ff8c5a";
+    }
+  });
+});
+</script>
+{% endblock %}
