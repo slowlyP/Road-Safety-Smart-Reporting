@@ -2,13 +2,10 @@ from app.extensions import db
 
 
 class ReportStatusLog(db.Model):
-    """
-    신고 상태 변경 이력
-    """
 
     __tablename__ = "report_status_logs"
 
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    id = db.Column(db.BigInteger, primary_key=True)
 
     report_id = db.Column(
         db.BigInteger,
@@ -17,21 +14,21 @@ class ReportStatusLog(db.Model):
     )
 
     old_status = db.Column(
-        db.Enum("접수", "확인중", "처리완료", "오탐")
+        db.Enum("접수", "확인중", "처리완료", "오탐"),
+        nullable=False
     )
 
     new_status = db.Column(
-        db.Enum("접수", "확인중", "처리완료", "오탐")
+        db.Enum("접수", "확인중", "처리완료", "오탐"),
+        nullable=False
     )
 
     changed_by = db.Column(
         db.BigInteger,
-        db.ForeignKey("users.id")
+        db.ForeignKey("users.id"),
+        nullable=True
     )
 
     memo = db.Column(db.String(255))
 
-    created_at = db.Column(
-        db.DateTime,
-        server_default=db.func.current_timestamp()
-    )
+    created_at = db.Column(db.DateTime, nullable=False)

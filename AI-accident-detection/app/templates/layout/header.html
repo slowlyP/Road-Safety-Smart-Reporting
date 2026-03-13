@@ -16,7 +16,11 @@
         <li><a href="{{ url_for('report.create_report_page') }}" class="highlight-link">신고하기</a></li>
 
         {% if is_admin %}
-          <li><a href="#" class="admin-link">대시보드</a></li>
+          <li>
+            <a href="{{ url_for('admin_dashboard.dashboard') }}" class="admin-link">
+              대시보드
+            </a>
+          </li>
         {% endif %}
       </ul>
     </nav>
