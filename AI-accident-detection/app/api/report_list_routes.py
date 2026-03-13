@@ -7,7 +7,14 @@ report_list_bp = Blueprint("report_list", __name__, url_prefix="/reports")
 
 @report_list_bp.route("/my-page", methods=["GET"])
 def my_reports_page():
-    return render_template("myreport/my_reports.html")
+    user = {
+        "name": session.get("user_name"),
+        "username": session.get("user_uid"),
+        "email": session.get("user_email"),
+        "role": session.get("user_role"),
+        "created_at": None
+    }
+    return render_template("myreport/my_reports.html", user=user)
 
 
 @report_list_bp.route("/my", methods=["GET"])

@@ -14,7 +14,8 @@ async function loadMyReports() {
 
     const result = await response.json();
 
-    if (!response.ok || !result.success) {
+    if (!response.ok) {
+      reportList.innerHTML = "";
       emptyBox.style.display = "block";
       emptyBox.textContent = result.message || "신고 목록을 불러오지 못했습니다.";
       return;
@@ -25,22 +26,30 @@ async function loadMyReports() {
     updateSummary(reports);
 
     if (reports.length === 0) {
+      reportList.innerHTML = "";
       emptyBox.style.display = "block";
+      emptyBox.textContent = "등록한 신고가 없습니다.";
       return;
     }
 
+    emptyBox.style.display = "none";
     reportList.innerHTML = reports.map(report => createReportCard(report)).join("");
+
   } catch (error) {
+    reportList.innerHTML = "";
     emptyBox.style.display = "block";
     emptyBox.textContent = "서버와 통신 중 오류가 발생했습니다.";
+    console.error(error);
   }
 }
 
 function updateSummary(reports) {
   const total = reports.length;
-  const received = reports.filter(r => r.status === "접수").length;
-  const checking = reports.filter(r => r.status === "확인중").length;
-  const done = reports.filter(r => r.status === "처리완료").length;
+  const received = reports.filter(report => report.status === "접수").length;
+  const checking = reports.filter(report => report.status === "확인중").length;
+  const done = reports.filter(
+    report => report.status === "처리완료" || report.status === "처리 완료"
+  ).length;
 
   document.getElementById("total-count").textContent = total;
   document.getElementById("count-received").textContent = received;
@@ -63,25 +72,16 @@ function createReportCard(report) {
       <div class="report-meta">
         <span class="meta-badge badge-type">${escapeHtml(report.report_type || "-")}</span>
         <span class="meta-badge badge-location">${escapeHtml(report.location_text || "위치 정보 없음")}</span>
-        <span class="meta-badge ${getRiskClass(report.risk_level)}">${escapeHtml(report.risk_level || "-")}</span>
         <span class="meta-badge ${getStatusClass(report.status)}">${escapeHtml(report.status || "-")}</span>
       </div>
     </article>
   `;
 }
 
-function getRiskClass(riskLevel) {
-  if (riskLevel === "낮음") return "badge-risk-low";
-  if (riskLevel === "주의") return "badge-risk-mid";
-  if (riskLevel === "위험") return "badge-risk-high";
-  if (riskLevel === "긴급") return "badge-risk-urgent";
-  return "badge-location";
-}
-
 function getStatusClass(status) {
   if (status === "접수") return "badge-status-received";
   if (status === "확인중") return "badge-status-checking";
-  if (status === "처리완료") return "badge-status-done";
+  if (status === "처리완료" || status === "처리 완료") return "badge-status-done";
   if (status === "오탐") return "badge-status-false";
   return "badge-location";
 }

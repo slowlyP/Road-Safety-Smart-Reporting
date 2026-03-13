@@ -14,9 +14,8 @@ class ReportService:
                 "content": report.content,
                 "report_type": report.report_type,
                 "location_text": report.location_text,
-                "risk_level": report.risk_level,
                 "status": report.status,
-                "created_at": report.created_at.strftime("%Y-%m-%d %H:%M") if report.created_at else None
+                "created_at": report.created_at.strftime("%Y-%m-%d %H:%M") if report.created_at else ""
             })
 
         return result
