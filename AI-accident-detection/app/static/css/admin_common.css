@@ -49,6 +49,12 @@
   gap: 10px;
 }
 
+.admin-nav-item a.active:hover {
+  background: linear-gradient(135deg, rgba(255, 90, 31, 0.16), rgba(255, 122, 31, 0.1));
+  color: #ff8c5a;
+  border-color: rgba(255, 122, 31, 0.25);
+}
+
 /* 메뉴 아이템 기본 */
 .admin-nav-item {
   width: 100%;
@@ -1057,5 +1063,83 @@ max-height:260px;
 
   .bar-chart-box {
     height: 300px;
+  }
+}
+/* ========================================
+   신고 첨부 파일 미리보기
+======================================== */
+
+.file-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.file-preview-item {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.file-preview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #d9e1f2;
+  word-break: break-all;
+}
+
+.preview-image,
+.preview-video {
+  width: 100%;
+  display: block;
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.preview-image {
+  max-height: 360px;
+  object-fit: cover;
+}
+
+.preview-video {
+  max-height: 360px;
+}
+
+.file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.file-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-meta-item span {
+  font-size: 0.84rem;
+  color: #98a6c2;
+}
+
+.file-meta-item strong {
+  font-size: 0.9rem;
+  color: #f3f6fc;
+  word-break: break-all;
+}
+
+@media (max-width: 992px) {
+  .file-preview-grid {
+    grid-template-columns: 1fr;
   }
 }

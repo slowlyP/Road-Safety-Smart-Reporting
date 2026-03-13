@@ -50,6 +50,7 @@ def create_app():
     from app.api.admin_report_routes import admin_report_bp
     from app.api.admin_user_routes import admin_user_bp
     from app.api.report_list_routes import report_list_bp
+    from app.api.admin_role_request_routes import admin_role_request_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -58,6 +59,7 @@ def create_app():
     app.register_blueprint(admin_dashboard_bp)
     app.register_blueprint(admin_report_bp)
     app.register_blueprint(admin_user_bp)
+    app.register_blueprint(admin_role_request_bp)
 
     app.register_blueprint(report_list_bp)
 

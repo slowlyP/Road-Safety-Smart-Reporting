@@ -22,7 +22,19 @@
         <div><span>가입일</span><strong>{{ user.created_at.strftime('%Y.%m.%d') if user.created_at else '-' }}</strong></div>
       </div>
 
-      <button class="dark-btn" type="button">프로필 수정</button>
+      <div class="profile-action-group">
+      <a href="{{ url_for('auth.update_profile') }}" class="dark-btn action-btn">
+        프로필 수정
+      </a>
+
+      <a href="{{ url_for('auth.role_request') }}" class="outline-btn action-btn">
+        관리자 권한 신청
+      </a>
+
+      <a href="{{ url_for('auth.delete_account') }}" class="danger-btn action-btn">
+        회원탈퇴
+      </a>
+    </div>
     </section>
 
     <section class="card-box alert-card moved-alert-card">

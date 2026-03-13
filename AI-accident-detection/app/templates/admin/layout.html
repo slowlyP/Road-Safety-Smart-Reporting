@@ -10,58 +10,8 @@
 {% block content %}
 <div class="admin-page">
 
-    <!-- 관리자 사이드바 -->
-    <aside class="admin-sidebar">
+    {% include "admin/_sidebar.html" %}
 
-        <div>
-            <div class="admin-sidebar-header">
-                <h2>ADMIN</h2>
-            </div>
-
-            <nav class="admin-nav">
-                <ul>
-                    <li class="admin-nav-item">
-                        <a href="{{ url_for('admin_dashboard.dashboard') }}">
-                            대시보드
-                        </a>
-                    </li>
-
-                    <li class="admin-nav-item">
-                        <a href="{{ url_for('admin_report.report_list') }}">
-                            신고관리
-                        </a>
-                    </li>
-
-                    <li class="admin-nav-item">
-                        <a href="#">
-                            AI 탐지 로그
-                        </a>
-                    </li>
-
-                    <li class="admin-nav-item">
-                        <a href="{{ url_for('admin_user.user_list') }}">
-                            회원관리
-                        </a>
-                    </li>
-
-                    <li class="admin-nav-item">
-                        <a href="#">
-                            권한 신청
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-
-        <div class="admin-sidebar-footer">
-            <a href="{{ url_for('main.index') }}" class="admin-back-link">
-                메인으로
-            </a>
-        </div>
-
-    </aside>
-
-    <!-- 관리자 메인 영역 -->
     <main class="admin-content">
         {% block admin_content %}{% endblock %}
     </main>

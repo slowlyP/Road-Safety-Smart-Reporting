@@ -17,7 +17,6 @@ class Report(db.Model):
     )
 
     title = db.Column(db.String(200), nullable=False)
-
     content = db.Column(db.Text)
 
     report_type = db.Column(
@@ -25,9 +24,7 @@ class Report(db.Model):
     )
 
     location_text = db.Column(db.String(255))
-
     latitude = db.Column(db.Numeric(10, 7))
-
     longitude = db.Column(db.Numeric(10, 7))
 
     risk_level = db.Column(
@@ -46,5 +43,10 @@ class Report(db.Model):
     )
 
     updated_at = db.Column(db.DateTime)
-
     deleted_at = db.Column(db.DateTime)
+
+    files = db.relationship(
+        "ReportFile",
+        backref="report",
+        lazy=True
+    )

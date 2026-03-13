@@ -348,3 +348,150 @@ ul {
     font-size: 1.2rem;
   }
 }
+/* ===== footer ===== */
+
+.site-footer{
+  margin-top:120px;
+  background:
+    radial-gradient(circle at top right, rgba(255,106,44,0.08), transparent 30%),
+    #0f162b;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+
+.footer-inner{
+  max-width:1400px;
+  margin:0 auto;
+  padding:70px 28px 50px;
+
+  display:grid;
+  grid-template-columns:1.2fr 0.8fr 1.4fr;
+  gap:60px;
+}
+
+/* 브랜드 */
+
+.footer-brand{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.footer-desc{
+  color:#b9c3d9;
+  line-height:1.7;
+  max-width:420px;
+}
+
+.footer-tech{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.footer-tech span{
+  padding:6px 12px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  font-size:0.85rem;
+  color:#d3dcef;
+}
+
+/* 서비스 링크 */
+
+.footer-links h4{
+  margin-bottom:20px;
+  font-size:1.1rem;
+}
+
+.footer-links ul{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.footer-links a{
+  color:#cdd6e9;
+  font-size:0.95rem;
+  transition:all .2s ease;
+}
+
+.footer-links a:hover{
+  color:#ff6b2c;
+  transform:translateX(3px);
+}
+
+.admin-footer-link{
+  color:#ffd166 !important;
+  font-weight:700;
+}
+
+/* 팀 카드 */
+
+.footer-team h4{
+  margin-bottom:22px;
+  font-size:1.1rem;
+}
+
+.team-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.team-card{
+  padding:16px 18px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  transition:all .2s ease;
+}
+
+.team-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,107,44,0.35);
+}
+
+.team-card strong{
+  display:block;
+  color:#ffffff;
+  margin-bottom:6px;
+}
+
+.team-card p{
+  font-size:0.9rem;
+  color:#c7d0e2;
+  margin-bottom:6px;
+}
+
+.team-card a{
+  font-size:0.85rem;
+  color:#ff8c5a;
+}
+
+/* footer bottom */
+
+.footer-bottom{
+  max-width:1400px;
+  margin:0 auto;
+  padding:20px 28px 30px;
+  border-top:1px solid rgba(255,255,255,0.08);
+  color:#97a3bd;
+  font-size:0.9rem;
+  text-align:center;
+}
+
+/* 반응형 */
+
+@media(max-width:1000px){
+
+.footer-inner{
+  grid-template-columns:1fr;
+  gap:40px;
+}
+
+.team-grid{
+  grid-template-columns:1fr;
+}
+
+}

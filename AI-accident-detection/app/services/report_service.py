@@ -4,8 +4,6 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from app.extensions import db 
 from app.models import Report, ReportFile 
-from app.extensions import db
-from app.models import Report, ReportFile
 
 class ReportService:
     """
@@ -32,7 +30,6 @@ class ReportService:
             )
 
             db.session.add(new_report)
-            db.session.flush() 
             db.session.flush()
 
             # 2. 파일 처리 로직
@@ -68,5 +65,4 @@ class ReportService:
         except Exception as e:
             db.session.rollback()
             print(f"Service Error: {e}")
-            raise e
             raise e

@@ -173,16 +173,18 @@ def role_request():
     관리자 권한 신청 페이지 / 신청 처리
     """
 
-    # 로그인하지 않은 경우
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
-    # 권한 신청 페이지 반환
+    user = UserRepository.get_user_by_id(session["user_id"])
+
     if request.method == "GET":
-        return render_template("auth/role_request.html")
+        return render_template(
+            "auth/role_request.html",
+            user=user
+        )
 
     try:
-        # 요청 데이터 받기
         request_data = request.get_json()
 
         if not request_data:
@@ -193,7 +195,6 @@ def role_request():
 
         reason = request_data.get("request_reason")
 
-        # 권한 신청 처리
         AuthService.request_admin_role(
             user_id=session["user_id"],
             reason=reason
@@ -278,8 +279,13 @@ def delete_account():
     if "user_id" not in session:
         return redirect(url_for("auth.login"))
 
+    user = UserRepository.get_user_by_id(session["user_id"])
+
     if request.method == "GET":
-        return render_template("auth/delete_account.html")
+        return render_template(
+            "auth/delete_account.html",
+            user=user
+        )
 
     try:
         request_data = request.get_json()
@@ -297,7 +303,6 @@ def delete_account():
             password=password
         )
 
-        # 탈퇴 후 세션 제거
         session.clear()
 
         return success_response(
