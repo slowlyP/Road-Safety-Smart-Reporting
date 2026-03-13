@@ -45,10 +45,19 @@ def create_app():
     # -------------------------
     from app.api.auth_routes import auth_bp
     from app.api.main_routes import main_bp
+<<<<<<< HEAD
     from app.api.report_routes import report_bp
+=======
+    from app.api.report_route import report_bp
+    from app.api.detect_routes import detect_bp
+>>>>>>> parent of 3b14ed3 (내정보보기 수정중)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(report_bp)
+<<<<<<< HEAD
+=======
+    app.register_blueprint(detect_bp)
+>>>>>>> parent of 3b14ed3 (내정보보기 수정중)
 
     return app
