@@ -23,6 +23,12 @@ class ReportRoute:
         """
         신고 데이터를 접수받아 처리합니다.
         """
+
+        current_user_id = session.get('user_id')
+        # API 보안 체크
+        if not current_user_id:
+            return jsonify({"error": "로그인이 필요한 서비스 입니다."}), 401
+
         try:
             form_data = request.form
             upload_file = request.files.get('files')
@@ -32,9 +38,12 @@ class ReportRoute:
 
             # 클래스 기반으로 바뀐 서비스를 호출합니다.
             ReportService.process_report_submission(form_data, upload_file)
+            # 클래스 기반 서비스 호출
+            ReportService.process_report_submission(current_user_id, form_data, upload_file)
 
             return jsonify({'message': "신고가 성공적으로 접수되었습니다."}), 200
 
         except Exception as e:
             print(f"Route Error: {e}")
+            return jsonify({"error": "신고 접수 중 오류가 발생했습니다."}), 500
             return jsonify({"error": "신고 접수 중 오류가 발생했습니다."}), 500

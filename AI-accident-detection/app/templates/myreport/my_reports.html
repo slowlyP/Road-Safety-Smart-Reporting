@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}내 신고 목록 | 404 R·N·F AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/my_reports.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-grid">
+  <aside class="left-panel">
+    <section class="profile-card card-box">
+      <div class="profile-icon">👤</div>
+      <h3 class="profile-name">{{ user.name or user.username }}</h3>
+      <p class="profile-region">{{ user.role }}</p>
+      <div class="profile-status">● 시스템 정상</div>
+
+      <div class="profile-info">
+        <div><span>아이디</span><strong>{{ user.username }}</strong></div>
+        <div><span>이메일</span><strong>{{ user.email }}</strong></div>
+        <div><span>권한</span><strong>{{ user.role }}</strong></div>
+        <div><span>가입일</span><strong>{{ user.created_at.strftime('%Y.%m.%d') if user.created_at else '-' }}</strong></div>
+      </div>
+
+      <button class="dark-btn" type="button">프로필 수정</button>
+    </section>
+
+    <section class="card-box alert-card moved-alert-card">
+      <h3>경보 설정</h3>
+
+      <div class="setting-item">
+        <div>
+          <strong>음성 경보</strong>
+          <p>낙하물 탐지 시 음성 안내 알림</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div>
+          <strong>진동 경보</strong>
+          <p>핸들 또는 진동으로 즉각 전달</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div>
+          <strong>화면 경보</strong>
+          <p>내비게이션 HUD에 위험 표시</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div>
+          <strong>후속 차량 공유</strong>
+          <p>탐지 정보를 주변 차량에 실시간 공유</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div>
+          <strong>이메일 리포트</strong>
+          <p>일일 탐지 리포트 이메일 수신</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+  </aside>
+
+  <section class="right-panel">
+    <section class="summary-row">
+      <div class="summary-card">
+        <div class="summary-icon red">📋</div>
+        <div class="summary-value" id="total-count">0</div>
+        <div class="summary-label">전체 신고</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon yellow">🟨</div>
+        <div class="summary-value" id="count-received">0</div>
+        <div class="summary-label">접수</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon green">✅</div>
+        <div class="summary-value" id="count-done">0</div>
+        <div class="summary-label">처리 완료</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon orange">⚠️</div>
+        <div class="summary-value" id="count-checking">0</div>
+        <div class="summary-label">확인중</div>
+      </div>
+    </section>
+
+    <section class="card-box detect-card compact-detect-card">
+      <div class="section-title-row">
+        <h3>오늘 탐지 기록</h3>
+        <a href="#" class="more-link">전체 보기</a>
+      </div>
+
+      <div class="detect-list">
+        <div class="detect-item">
+          <span class="detect-time">14:32</span>
+          <div class="detect-text">
+            <strong>경부고속도로 45km</strong>
+            <p>타이어 파편</p>
+          </div>
+          <span class="badge danger">고위험</span>
+        </div>
+
+        <div class="detect-item">
+          <span class="detect-time">13:18</span>
+          <div class="detect-text">
+            <strong>올림픽대로 12km</strong>
+            <p>낙석</p>
+          </div>
+          <span class="badge warning">중위험</span>
+        </div>
+
+        <div class="detect-item">
+          <span class="detect-time">11:45</span>
+          <div class="detect-text">
+            <strong>서해안고속도로 88km</strong>
+            <p>박스 조각</p>
+          </div>
+          <span class="badge safe">저위험</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card-box report-list-section large-report-section">
+      <div class="section-title-row">
+        <h3>내 신고 리스트</h3>
+      </div>
+
+      <div id="report-list" class="report-list"></div>
+
+      <div id="empty-box" class="empty-box" style="display: none;">
+        등록한 신고가 없습니다.
+      </div>
+    </section>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/my_reports.js') }}"></script>
+{% endblock %}

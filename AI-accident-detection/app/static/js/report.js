@@ -63,6 +63,12 @@ function updatePosition(latLng) {
             }
         } else if (status === "REQUEST_DENIED") {
             console.error("Geocoding API 권한을 확인하세요.");
+function updatePosition(latLng) {
+    document.getElementById("latitude").value = latLng.lat();
+    document.getElementById("longitude").value = latLng.lng();
+    geocoder.geocode({ location: latLng }, (results, status) => {
+        if (status === "OK" && results[0]) {
+            document.getElementById("location_text").value = results[0].formatted_address;
         }
     });
 }
@@ -84,10 +90,19 @@ if (modalHeader && modalContent) {
         offset.x = e.clientX - modalContent.offsetLeft;
         offset.y = e.clientY - modalContent.offsetTop;
         modalContent.style.margin = '0';
+    modalHeader.style.cursor = 'move'; // 헤더에 마우스 올리면 이동 커서로 변경
+
+    modalHeader.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        // 클릭한 지점과 창의 왼쪽 상단 모서리 사이의 거리 계산
+        offset.x = e.clientX - modalContent.offsetLeft;
+        offset.y = e.clientY - modalContent.offsetTop;
+        modalContent.style.margin = '0'; // 중앙 정렬 해제 (이동을 위해)
     });
 
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
+        // 마우스 움직임에 따라 창 위치 업데이트
         modalContent.style.position = 'absolute';
         modalContent.style.left = (e.clientX - offset.x) + 'px';
         modalContent.style.top = (e.clientY - offset.y) + 'px';
@@ -98,6 +113,13 @@ if (modalHeader && modalContent) {
 
 // ---------------------------------------------------------
 // 4. 드래그 앤 드롭 업로드 (일반 파일 및 기본 URL 지원)
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+}
+
+// ---------------------------------------------------------
+// 4. 기존 드래그 앤 드롭 업로드 및 제출 로직 (유지)
 // ---------------------------------------------------------
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('fileInput');
@@ -142,6 +164,16 @@ if (dropZone) {
         }
     });
 
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '#2A2A2A';
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            updateFileInfo(e.dataTransfer.files[0]);
+        }
+    });
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) updateFileInfo(fileInput.files[0]);
     });
@@ -150,6 +182,51 @@ if (dropZone) {
 // ---------------------------------------------------------
 // 5. 신고 제출 로직
 // ---------------------------------------------------------
+// 1. [수정] 파일 미리보기 함수 (텍스트 표시에서 이미지/영상 표시로 변경)
+function updateFileInfo(file) {
+    const infoText = dropZone.querySelector('p');
+    const icon = dropZone.querySelector('i');
+    const previewContainer = document.getElementById('file-preview');
+    
+    // 기존 미리보기 내용 삭제
+    previewContainer.innerHTML = '';
+    
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            let previewElement;
+            
+            // 이미지 파일인 경우
+            if (file.type.startsWith('image/')) {
+                previewElement = document.createElement('img');
+            } 
+            // 동영상 파일인 경우
+            else if (file.type.startsWith('video/')) {
+                previewElement = document.createElement('video');
+                previewElement.autoplay = true;
+                previewElement.muted = true;
+                previewElement.loop = true;
+                previewElement.playsInline = true;
+            }
+            
+            if (previewElement) {
+                previewElement.src = e.target.result;
+                previewElement.classList.add('inner-preview'); // CSS 적용
+                previewContainer.appendChild(previewElement);
+                
+                // UI 전환: 미리보기는 보이고, 기존 문구와 아이콘은 숨김
+                previewContainer.style.display = 'flex'; 
+                if (infoText) infoText.style.display = 'none';
+                if (icon) icon.style.display = 'none';
+            }
+        };
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+// 2. [유지/확인] 신고 제출 로직
 const reportForm = document.getElementById('reportForm');
 if (reportForm) {
     reportForm.addEventListener('submit', async (e) => {
@@ -171,6 +248,14 @@ if (reportForm) {
             type = '영상';
             formData.append('video_url', videoUrl);
         }
+        
+        if (!firstFile) {
+            alert('사진 또는 영상을 첨부해주세요.');
+            return;
+        }
+
+        // 서버에서 구분하기 쉽게 타입 추가
+        const type = firstFile.type.includes('image') ? '이미지' : '영상';
         formData.append('report_type', type);
 
         try {
@@ -179,6 +264,9 @@ if (reportForm) {
                 body: formData
             });
             const result = await response.json();
+            
+            const result = await response.json();
+
             if (response.ok) {
                 alert('신고가 성공적으로 접수되었습니다!');
                 window.location.href = '/'; 
@@ -186,6 +274,10 @@ if (reportForm) {
                 alert(result.error || '전송 오류 발생');
             }
         } catch (error) {
+                alert(result.error || '전송 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            console.error('네트워크 오류:', error);
             alert('서버 연결 실패');
         }
     });
@@ -235,6 +327,44 @@ function updateFileInfo(source, isVideo = false) {
 // ---------------------------------------------------------
 // 7. 모달창 및 현재 위치 가져오기 관련 함수들
 // ---------------------------------------------------------
+// URL 또는 파일 데이터를 받아 미리보기를 띄우는 통합 함수
+function showPreview(source, isVideo = false) {
+    const infoText = dropZone.querySelector('p');
+    const icon = dropZone.querySelector('i');
+    const previewContainer = document.getElementById('file-preview');
+    
+    previewContainer.innerHTML = ''; // 초기화
+
+    let previewElement;
+    if (isVideo) {
+        previewElement = document.createElement('video');
+        previewElement.autoplay = true;
+        previewElement.muted = true;
+        previewElement.loop = true;
+    } else {
+        previewElement = document.createElement('img');
+    }
+
+    previewElement.src = source; // 파일 데이터(base64)나 일반 URL(http) 모두 가능
+    previewElement.classList.add('inner-preview');
+    
+    previewContainer.appendChild(previewElement);
+    previewContainer.style.display = 'flex';
+    
+    if (infoText) infoText.style.display = 'none';
+    if (icon) icon.style.display = 'none';
+}
+
+// 예: 만약 주소 입력창에 이미지 URL을 붙여넣었을 때 바로 보여주고 싶다면?
+document.getElementById('location_text').addEventListener('input', (e) => {
+    const value = e.target.value;
+    // 입력값이 http로 시작하고 이미지 확장자라면 미리보기 실행
+    if (value.startsWith('http') && (value.match(/\.(jpeg|jpg|gif|png)$/) != null)) {
+        showPreview(value, false);
+    }
+});
+
+// 모달 열기/닫기
 function openMapModal() {
     document.getElementById("mapModal").style.display = "flex";
     setTimeout(() => {
@@ -260,6 +390,40 @@ function getCurrentLocation() {
             marker.setPosition(pos);
             updatePosition(pos);
         });
+function closeMapModal() {
+    document.getElementById("mapModal").style.display = "none";
+}
+
+function confirmLocation() {
+    closeMapModal();
+}
+
+// 현재 위치 가져오기 기능 추가
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+
+                // 1. 지도의 중심을 현재 위치로 이동
+                map.setCenter(pos);
+                map.setZoom(17); // 조금 더 가깝게 줌인
+
+                // 2. 마커 위치 변경
+                marker.setPosition(pos);
+
+                // 3. 위도, 경도 정보 업데이트 (기존 updatePosition 함수 활용)
+                updatePosition(pos);
+                
+                console.log("현재 위치를 찾았습니다.");
+            },
+            () => {
+                alert("현재 위치를 가져오는데 실패했습니다. 위치 권한을 확인해주세요.");
+            }
+        );
     } else {
         alert("이 브라우저에서는 위치 정보를 사용할 수 없습니다.");
     }
