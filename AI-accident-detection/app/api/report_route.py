@@ -12,13 +12,10 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/report/create', methods=['GET'])
     def create_report_page():
-        """
-        로그인 여부를 확인후 신고 페이지 또는 로그인 페이지로 전송송
-        """
         user_id = session.get('user_id')
 
         if not user_id:
-            # 로그인 되어 있지않으면 로그인 페이지로 re다이렉트
+            # 로그인 안되어 있으면 로그인 페이지로 이동
             return redirect(url_for('auth.login'))
 
         return render_template('report/create.html')
@@ -26,13 +23,9 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/api/report', methods=['POST'])
     def create_report():
-        """
-        데이터 저장 시에 로그인 여부 확인
-        """
         if not session.get('user_id'):
-            return jsonify({"error": "로그인이 필요한 서비스입니다. "}), 401
-
-
+            return jsonify({"error": "로그인이 필요한 서비스 입니다."}), 401
+            
         try:
             form_data = request.form
             upload_file = request.files.get('files')
