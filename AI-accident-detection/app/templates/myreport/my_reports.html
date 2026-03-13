@@ -1,28 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>내 신고 목록 | 404 R·N·F AI</title>
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>내 신고 목록 | RoadGuard AI</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/my_reports.css') }}">
-
 </head>
-
 <body>
 <header class="topbar">
   <div class="brand">
-    <div class="brand-logo">404</div>
-    <div class="brand-text">R·N·F <span>AI</span></div>
+    <div class="brand-logo">🚧</div>
+    <div class="brand-text">RoadGuard <span>AI</span></div>
   </div>
 
   <nav class="topnav">
-    <a href="/">홈</a>
+    <a href="#">홈</a>
     <a href="#">탐지 현황</a>
-    <a href="#" class="active">내 목록</a>
+    <a href="/reports/mypage_list" class="active">내 목록</a>
     <a href="#" class="dashboard-btn">대시보드</a>
   </nav>
 </header>
@@ -205,7 +199,7 @@
             <p>전체 탐지 기록 확인</p>
           </div>
         </a>
-        <a href="/reports/my-page" class="quick-item">
+        <a href="/reports/mypage_list" class="quick-item">
           <div class="quick-icon">🔖</div>
           <div>
             <strong>내 목록</strong>
@@ -216,6 +210,9 @@
     </section>
 
   </section>
-  </main>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/my_reports.js') }}"></script>
 </body>
 </html>
