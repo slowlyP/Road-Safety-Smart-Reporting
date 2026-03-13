@@ -45,7 +45,10 @@ def create_app():
     from app.api.auth_routes import auth_bp
     from app.api.main_routes import main_bp
     from app.api.report_route import report_bp
+<<<<<<< HEAD
     from app.api.detect_routes import detect_bp
+=======
+>>>>>>> c6b7862f85caed1a819865166490fc94f379d5dd
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)

@@ -14,10 +14,10 @@
     <form id="reportForm" action="{{ url_for('report.create_report') }}" method="POST" enctype="multipart/form-data">
         <section class="form-section">
             <h3><i class="fa-solid fa-camera"></i> 사진 및 영상 첨부</h3>
-            <div id="drop-zone" class="upload-box" >
+            <div id="drop-zone" class="upload-box">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                <p>파일을 여기로 끌어다 놓거나 클릭하세요</p>
-                <input type="file" id="fileInput" name="files" accept="image/*,video/*" multiple hidden>
+                <p>파일을 끌어다 놓거나 클릭하세요</p>
+                <input type="file" id="fileInput" name="files" accept="image/*,video/*" hidden>
                 <div id="file-preview" class="preview-container"></div>
             </div>
         </section>
