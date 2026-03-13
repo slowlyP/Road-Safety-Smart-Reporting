@@ -13,7 +13,6 @@ class ReportService:
     """
 
     @staticmethod
-    def process_report_submission(form_data, upload_file):
     def process_report_submission(user_id, form_data, upload_file):
         """
         사용자의 신고 제출 데이터를 받아 DB에 저장하고 파일을 처리하는 메서드
@@ -21,8 +20,7 @@ class ReportService:
         try:
             # 1. Report 객체 생성 (클래스 활용)
             new_report = Report(
-                user_id=1,  # 로그인 연동 전 임시값
-                user_id= user_id,  # 로그인 연동 전 임시값
+                user_id= user_id,
                 title=form_data.get('title'),
                 content=form_data.get('content'),
                 report_type=form_data.get('report_type'),
