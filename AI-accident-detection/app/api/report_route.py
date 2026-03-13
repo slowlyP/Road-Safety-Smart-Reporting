@@ -1,36 +1,50 @@
-from flask import Blueprint, request, jsonify, render_template # render_template 추가
-from app.services.report_service import process_report_submission
+from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
+from app.services.report_service import ReportService
 
-# 역할: 'report'라는 이름의 Blueprint 생성
+# Blueprint 생성
 report_bp = Blueprint('report', __name__)
 
-# --- [여기 추가된 부분] 사용자가 주소를 치고 들어왔을 때 페이지를 보여주는 함수 ---
-@report_bp.route('/report/create', methods=['GET'])
-def create_report_page():
+class ReportRoute:
     """
-    브라우저 주소창에 /report/create를 입력하면 
-    신고 등록 HTML 페이지를 보여줍니다.
+    신고 관련 HTTP 요청(Route)을 처리하는 클래스
     """
-    return render_template('report/create.html')
+
+    @staticmethod
+    @report_bp.route('/report/create', methods=['GET'])
+    def create_report_page():
+        """
+        로그인 여부를 확인후 신고 페이지 또는 로그인 페이지로 전송송
+        """
+        user_id = session.get('user_id')
+
+        if not user_id:
+            # 로그인 되어 있지않으면 로그인 페이지로 re다이렉트
+            return redirect(url_for('auth.login'))
+
+        return render_template('report/create.html')
+
+    @staticmethod
+    @report_bp.route('/api/report', methods=['POST'])
+    def create_report():
+        """
+        데이터 저장 시에 로그인 여부 확인
+        """
+        if not session.get('user_id'):
+            return jsonify({"error": "로그인이 필요한 서비스입니다. "}), 401
 
 
-# --- 기존에 작성하신 데이터 처리 함수 ---
-@report_bp.route('/api/report', methods=['POST'])
-def create_report():
-    """
-    브라우저의 JS(fetch)가 보낸 데이터를 받아 서비스를 호출합니다.
-    """
-    try:
-        form_data = request.form
-        upload_file = request.files.get('files')
+        try:
+            form_data = request.form
+            upload_file = request.files.get('files')
 
-        if not upload_file or upload_file.filename == '':
-            return jsonify({"error": "첨부된 파일이 없습니다."}), 400
+            if not upload_file or upload_file.filename == '':
+                return jsonify({"error": "첨부된 파일이 없습니다."}), 400
 
-        process_report_submission(form_data, upload_file)
+            # 클래스 기반으로 바뀐 서비스를 호출합니다.
+            ReportService.process_report_submission(form_data, upload_file)
 
-        return jsonify({'message': "신고가 성공적으로 접수되었습니다."}), 200
+            return jsonify({'message': "신고가 성공적으로 접수되었습니다."}), 200
 
-    except Exception as e:
-        print(f"Route Error: {e}")
-        return jsonify({"error": "신고 접수 중 오류가 발생했습니다."}), 500
+        except Exception as e:
+            print(f"Route Error: {e}")
+            return jsonify({"error": "신고 접수 중 오류가 발생했습니다."}), 500

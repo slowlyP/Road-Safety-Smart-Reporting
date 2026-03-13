@@ -219,7 +219,7 @@ function updateFileInfo(source, isVideo = false) {
         if (isVid) {
             el.autoplay = true;
             el.muted = true;
-            el.loop = true;
+            el.controls = true;
         }
         el.src = src;
         

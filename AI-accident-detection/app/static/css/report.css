@@ -93,7 +93,7 @@ input[type="text"], textarea {
     width: 100%; 
     background: #1A1A1B; 
     border: 1px solid var(--rg-border); 
-    color: #a7a7a7 !important; /* 사용자가 입력하는 글자색: 순백색 */
+    color: #fafafa !important; /* 사용자가 입력하는 글자색: 순백색 */
     padding: 15px; 
     border-radius: 8px; 
     box-sizing: border-box;
