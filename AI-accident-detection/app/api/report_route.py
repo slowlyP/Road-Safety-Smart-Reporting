@@ -24,8 +24,10 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/api/report', methods=['POST'])
     def create_report():
+
+        current_user_id = session.get('user_id')
         # API 보안 체크
-        if not session.get('user_id'):
+        if not current_user_id:
             return jsonify({"error": "로그인이 필요한 서비스 입니다."}), 401
             
         try:
@@ -36,7 +38,7 @@ class ReportRoute:
                 return jsonify({"error": "첨부된 파일이 없습니다."}), 400
 
             # 클래스 기반 서비스 호출
-            ReportService.process_report_submission(form_data, upload_file)
+            ReportService.process_report_submission(current_user_id, form_data, upload_file)
 
             return jsonify({'message': "신고가 성공적으로 접수되었습니다."}), 200
 
