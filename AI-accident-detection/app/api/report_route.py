@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify, render_template
-from app.services.report_service import ReportService # 수정된 클래스 기반 서비스 임포트
+from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
+from app.services.report_service import ReportService
 
 # Blueprint 생성
 report_bp = Blueprint('report', __name__)
@@ -12,9 +12,13 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/report/create', methods=['GET'])
     def create_report_page():
-        """
-        신고 등록 HTML 페이지를 렌더링합니다.
-        """
+        # 조장님 로그인 세션 확인 로직 적용
+        user_id = session.get('user_id')
+
+        if not user_id:
+            # 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
+            return redirect(url_for('auth.login'))
+
         return render_template('report/create.html')
 
     @staticmethod
@@ -29,6 +33,7 @@ class ReportRoute:
         if not current_user_id:
             return jsonify({"error": "로그인이 필요한 서비스 입니다."}), 401
 
+            
         try:
             form_data = request.form
             upload_file = request.files.get('files')
