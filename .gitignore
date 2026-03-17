@@ -14,3 +14,13 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment files
+AI-accident-detection/.env
+AI-accident-detection/.env.backup
+
+# Upload files
+AI-accident-detection/app/static/uploads/
+
+# Model weights
+AI-accident-detection/yolov8n.pt
