@@ -7,7 +7,6 @@ let autocomplete;
 function initMap() {
     const initialPos = { lat: 37.5665, lng: 126.9780 }; // 서울 기준
     geocoder = new google.maps.Geocoder();
-    
     map = new google.maps.Map(document.getElementById("map"), {
         center: initialPos,
         zoom: 15,
@@ -39,7 +38,6 @@ function initAutocomplete() {
     const input = document.getElementById("location_text");
     // 구글 장소 자동완성 연결
     autocomplete = new google.maps.places.Autocomplete(input);
-    
     // 검색 결과가 바뀌었을 때 실행
     autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
@@ -52,7 +50,6 @@ function initAutocomplete() {
         map.setCenter(place.geometry.location);
         map.setZoom(17);
         marker.setPosition(place.geometry.location);
-        
         // hidden input(위도/경도) 업데이트
         document.getElementById("latitude").value = place.geometry.location.lat();
         document.getElementById("longitude").value = place.geometry.location.lng();
@@ -133,7 +130,6 @@ function handleFiles(file) {
     const previewContainer = document.getElementById('file-preview');
     const infoText = dropZone.querySelector('p');
     const icon = dropZone.querySelector('i');
-    
     previewContainer.innerHTML = '';
     const isVideo = file.type.startsWith('video/');
 
@@ -145,7 +141,6 @@ function handleFiles(file) {
             el.controls = true; // 영상 컨트롤러(재생시간 등) 표시
             el.autoplay = true;
             el.muted = true;
-            
             // 영상이 로드되면 길이를 출력 (콘솔이나 UI에 활용 가능)
             el.onloadedmetadata = function() {
                 console.log("영상 길이: " + el.duration.toFixed(2) + "초");
@@ -158,7 +153,6 @@ function handleFiles(file) {
         el.classList.add('inner-preview');
         previewContainer.appendChild(el);
         previewContainer.style.display = 'flex';
-        
         if (infoText) infoText.style.display = 'none';
         if (icon) icon.style.display = 'none';
     };
