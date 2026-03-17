@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}마이페이지 | 404 R·N·F AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mypage.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="mypage-section">
+
+  <div class="mypage-container">
+
+    <!-- 페이지 제목 -->
+    <div class="mypage-header">
+      <h1>마이페이지</h1>
+      <p>회원 정보 확인 및 관리</p>
+    </div>
+
+    <!-- 내 정보 카드 -->
+    <div class="mypage-card">
+
+      <h2>내 정보</h2>
+
+      <div class="mypage-info">
+        <div class="info-row">
+          <span class="info-label">아이디</span>
+          <span class="info-value">{{ user.username }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">이메일</span>
+          <span class="info-value">{{ user.email }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">이름</span>
+          <span class="info-value">{{ user.name }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">권한</span>
+          <span class="info-value">{{ user.role }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">가입일</span>
+          <span class="info-value">{{ user.created_at }}</span>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- 기능 버튼 -->
+    <div class="mypage-actions">
+
+      <a href="{{ url_for('auth.update_profile') }}" class="mypage-btn">
+        내 정보 수정
+      </a>
+
+      <a href="{{ url_for('report_list.my_reports_page') }}" class="mypage-btn">
+        내 신고 목록
+      </a>
+
+      {% if user.role == 'user' %}
+      <a href="{{ url_for('auth.role_request') }}" class="mypage-btn admin">
+        관리자 권한 신청
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('auth.delete_account') }}" class="mypage-btn danger">
+        회원 탈퇴
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+{% endblock %}

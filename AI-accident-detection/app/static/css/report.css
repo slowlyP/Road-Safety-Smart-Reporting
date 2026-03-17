@@ -134,6 +134,35 @@ input:focus, textarea:focus { outline: none; border-color: var(--rg-main-orange)
 }
 .modal-header { background: #1A1A1B; padding: 20px; display: flex; justify-content: space-between; }
 
+/* --- [수정] 구글 자동완성 창 전체에 대한 커서 강제 설정 --- */
+
+/* 1. 자동완성 목록 전체 영역에서 텍스트 커서 방지 */
+.pac-container {
+    cursor: default !important;
+}
+
+/* 2. 주소창 내부의 X 버튼 및 목록의 각 항목들 */
+.pac-item,
+.pac-item *,
+.pac-icon,
+.dismiss-button,
+.pac-container .close-icon {
+    cursor: pointer !important;
+}
+
+/* 3. 역할이 버튼인 모든 요소 강제 적용 (가장 확실함) */
+[role="button"],
+[role="option"],
+.pac-matched {
+    cursor: pointer !important;
+}
+/* 추가로, 지도 모달 내부에 있는 모든 버튼 요소에도 적용 */
+.modal-content button,
+.modal-content i[class*="close"],
+.modal-content .close-button {
+    cursor: pointer !important;
+}
+
 /* --- 지도 '이 위치로 지정' 버튼 스타일 (사용자 지정 글자색 유지) --- */
 .btn-confirm-location {
     display: block;
@@ -156,4 +185,30 @@ input:focus, textarea:focus { outline: none; border-color: var(--rg-main-orange)
     filter: brightness(1.1);
     transform: translateY(-1px);
     box-shadow: 0 6px 12px rgba(255, 107, 0, 0.3);
+}
+
+/* 헤더 내부의 전체 영역을 한 줄로 고정 */
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap; /* 절대 줄바꿈 금지 */
+    gap: 10px;        /* 요소들 사이의 최소 간격 */
+}
+
+/* 메뉴 리스트 한 줄 고정 */
+.nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap; /* 텍스트가 길어져도 한 줄 유지 */
+}
+
+/* 마이페이지/로그아웃 버튼 뭉치 한 줄 고정 */
+.header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;      /* 공간이 좁아져도 크기가 줄어들지 않음 */
+    white-space: nowrap; /* 버튼 내부 텍스트 줄바꿈 방지 */
 }
