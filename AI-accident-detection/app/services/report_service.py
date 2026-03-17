@@ -5,6 +5,9 @@ from werkzeug.utils import secure_filename
 from app.extensions import db 
 from app.models import Report, ReportFile 
 
+# AI 서비스 직접 호출을 위한 import (yolo_service에서 직접 가져옴옴)
+from app.services.yolo_service import detect_image, detect_video 
+
 class ReportService:
     """
     신고 관련 비즈니스 로직을 담당하는 서비스 클래스
@@ -30,12 +33,12 @@ class ReportService:
             )
 
             db.session.add(new_report)
-            db.session.flush()
+            db.session.flush() # db에 임시 반영해서 new_report.id 확보보
 
             # 2. 파일 처리 로직
             if upload_file and upload_file.filename != '':
                 original_name = secure_filename(upload_file.filename)
-                ext = os.path.splitext(original_name)[1]
+                ext = os.path.splitext(original_name)[1].lower()
                 stored_name = f"{uuid.uuid4().hex}{ext}"
 
                 upload_folder = os.path.join('app', 'static', 'uploads')
@@ -44,6 +47,30 @@ class ReportService:
 
                 file_path = os.path.join(upload_folder, stored_name)
                 upload_file.save(file_path)
+
+                # 이미지 파일의 경우 AI 분석 수행
+                try:
+
+                    if ext in ['.jpg', '.jpeg', '.png', '.webp']:
+                        detections = detect_image(file_path)
+
+                        if detections:
+                            # 탐지 결과 중 가장 신뢰도가 높은 첫 번째 객체 정보를 report 에 기록
+                            new_report.detected_item = detections[0]['label']
+                            new_report.confidence = detections[0]['confidence']
+
+                    # 영상 파일일 경우 AI 분석 수행
+                    elif ext in ['.mp4', '.avi', '.mov']:
+                        video_result = detect_video(file_path)
+                        # 영상도 첫 번째 탐지 결과를 저장하도록 추가
+                        if video_result and len(video_result) > 0:
+                            new_report.detected_item = video_result[0]['label']
+                            new_report.confidence = video_result[0]['confidence']
+                except Exception as ai_e:
+                    # AI 분석이 실패해도 신고는 접소되도록 로그만 출력
+                    print(f"AI Analysis warning:{ai_e}")
+
+
 
                 # ReportFile 객체 생성
                 new_file = ReportFile(
