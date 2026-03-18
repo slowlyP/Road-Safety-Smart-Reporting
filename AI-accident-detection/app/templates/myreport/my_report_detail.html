@@ -3,37 +3,58 @@
 {% block title %}신고 상세보기 | 404 R·N·F AI{% endblock %}
 
 {% block extra_css %}
+<!-- 상세보기 전용 CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/report_detail.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="detail-page">
+  <!-- flash 메시지 출력 -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-message-wrap">
+    {% for category, message in messages %}
+    <div class="toast-message toast-{{ category }}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+  <!-- 상단 헤더 영역 -->
   <div class="detail-header">
     <div>
       <h2 class="detail-page-title">신고 상세보기</h2>
       <p class="detail-page-subtitle">신고한 내용을 자세히 확인할 수 있습니다.</p>
     </div>
 
-    <a href="{{ url_for('report_list.my_reports_page') }}" class="back-btn">목록으로</a>
+    <!-- 목록 이동 버튼 -->
+    <a href="{{ url_for('report_list.my_reports_page') }}" class="back-btn">
+      목록으로
+    </a>
   </div>
 
   <section class="detail-card">
+
+    <!-- 제목 + 상태 -->
     <div class="detail-top">
       <div>
         <h3 class="detail-title">{{ report.title or '-' }}</h3>
         <p class="detail-date">{{ report.created_at or '-' }}</p>
       </div>
 
+      <!-- 상태 표시 -->
       <span class="detail-status
         {% if report.status == '접수' %}received{% endif %}
         {% if report.status == '확인중' %}checking{% endif %}
         {% if report.status == '처리완료' or report.status == '처리 완료' %}done{% endif %}
         {% if report.status == '오탐' %}false{% endif %}
       ">
-      {{ report.status or '-' }}
+        {{ report.status or '-' }}
       </span>
     </div>
 
+    <!-- 기본 정보 -->
     <div class="detail-info-grid">
       <div class="detail-info-box">
         <span class="detail-label">신고 유형</span>
@@ -46,6 +67,7 @@
       </div>
     </div>
 
+    <!-- 신고 내용 -->
     <div class="detail-section">
       <h4 class="detail-section-title">신고 내용</h4>
       <div class="detail-content-box">
@@ -53,21 +75,39 @@
       </div>
     </div>
 
+    <!-- 첨부파일 -->
     <div class="detail-section">
       <h4 class="detail-section-title">첨부파일</h4>
 
       <div class="detail-image-preview" id="detail-image-preview">
-        <div
-          class="file-preview-item"
-          data-file-url="{{ report.file_url }}"
-          data-file-type="{{ report.file_type }}"
-        ></div>
+        {% if report.file_url and report.file_type == "이미지" %}
+        <img
+          src="{{ report.file_url }}"
+          alt="신고 이미지"
+          class="detail-image-file"
+        >
+        {% elif report.file_url and report.file_type == "영상" %}
+        <video controls class="detail-video-preview">
+          <source src="{{ report.file_url }}">
+          브라우저가 영상을 지원하지 않습니다.
+        </video>
+        {% elif report.file_url %}
+        <a href="{{ report.file_url }}" target="_blank" class="file-download-link">
+          파일 보기
+        </a>
+        {% else %}
+        <p class="image-empty-text">등록된 파일이 없습니다.</p>
+        {% endif %}
       </div>
     </div>
+
+    <!-- 버튼 영역 -->
     <div class="detail-action-buttons">
 
+      <!-- 수정 버튼 (접수 상태만 가능) -->
       {% if report.status == '접수' %}
-      <a href="{{ url_for('report_list.edit_report_page', report_id=report.id) }}" class="detail-edit-btn">
+      <a href="{{ url_for('report_list.edit_report_page', report_id=report.id) }}"
+         class="detail-edit-btn">
         수정
       </a>
       {% else %}
@@ -76,15 +116,33 @@
       </button>
       {% endif %}
 
-      <form action="{{ url_for('report_list.delete_report', report_id=report.id) }}" method="post">
-        <button type="submit" class="detail-delete-btn">삭제</button>
+      <!-- 삭제 버튼 -->
+      <form
+        action="{{ url_for('report_list.delete_report', report_id=report.id) }}"
+        method="post"
+      >
+        <button
+          type="submit"
+          class="detail-delete-btn"
+          onclick="return confirm('정말 삭제하시겠습니까?');"
+        >
+          삭제
+        </button>
       </form>
 
     </div>
+
   </section>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/my_report_detail.js') }}"></script>
+<script>
+  setTimeout(function () {
+    const toastMessages = document.querySelectorAll(".toast-message");
+    toastMessages.forEach(function (msg) {
+      msg.style.display = "none";
+    });
+  }, 3000);
+</script>
 {% endblock %}
