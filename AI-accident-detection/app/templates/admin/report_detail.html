@@ -1,0 +1,153 @@
+{% extends "admin/layout.html" %}
+{#
+  관리자 신고 상세 페이지
+
+  역할
+  - 특정 신고의 상세 정보 확인
+  - 신고 제목 / 내용 / 위험도 / 상태 / 등록일 확인
+  - 관리자 상태 변경 기능 제공
+
+  데이터
+  - report : admin_report_service 에서 전달된 신고 상세 데이터
+#}
+
+{% block title %}신고 상세{% endblock %}
+
+{% block admin_content %}
+
+<section class="admin-panel">
+
+  <!-- 페이지 제목 -->
+  <div class="admin-page-header">
+    <h1 class="admin-page-title">신고 상세</h1>
+    <p class="admin-page-desc">
+      신고 상세 내용을 확인하고 처리 상태를 변경할 수 있습니다.
+    </p>
+  </div>
+
+  <!-- 상단 액션 영역 -->
+  <div class="panel-header">
+    <div>
+      <h2 class="panel-title">신고 정보</h2>
+      <p class="panel-desc">신고 기본 정보와 내용을 확인합니다.</p>
+    </div>
+
+    <a href="{{ url_for('admin_report.report_list') }}" class="btn-secondary">
+      목록으로
+    </a>
+  </div>
+
+  <!-- 신고 정보 상세 -->
+  <div class="detail-grid">
+
+    <!-- 왼쪽: 기본 정보 -->
+    <div class="detail-card">
+      <h3 class="detail-card-title">기본 정보</h3>
+
+      <div class="detail-list">
+        <div class="detail-item">
+          <div class="detail-label">신고 ID</div>
+          <div class="detail-value">{{ report.id }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">제목</div>
+          <div class="detail-value">{{ report.title }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">위험도</div>
+          <div class="detail-value">
+            <span class="badge badge-risk">{{ report.risk_level }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">현재 상태</div>
+          <div class="detail-value">
+            <span class="badge badge-status">{{ report.status }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">등록일</div>
+          <div class="detail-value">{{ report.created_at }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 신고 내용 -->
+    <div class="detail-card">
+      <h3 class="detail-card-title">신고 내용</h3>
+
+      <div class="report-content-box">
+        {% if report.content %}
+          {{ report.content }}
+        {% else %}
+          신고 내용이 없습니다.
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 상태 변경 폼 -->
+  <div class="detail-card detail-card-spacing">
+    <h3 class="detail-card-title">상태 관리</h3>
+    <p class="panel-desc">
+      신고 처리 상태를 변경할 수 있습니다.
+    </p>
+
+    <form
+      action="{{ url_for('admin_report.update_report_status', report_id=report.id) }}"
+      method="POST"
+      class="status-form"
+    >
+
+      <!-- 현재 상태 안내 -->
+      <div class="status-current-box">
+        <span class="status-current-label">현재 상태</span>
+        <span class="badge badge-status">{{ report.status }}</span>
+      </div>
+
+      <!-- 상태 선택 -->
+      <div class="form-group">
+        <label for="status" class="form-label">변경할 상태</label>
+
+        <select name="status" id="status" class="form-select" required>
+          <option value="">상태를 선택하세요</option>
+          <option value="접수" {% if report.status == '접수' %}selected{% endif %}>접수</option>
+          <option value="확인중" {% if report.status == '확인중' %}selected{% endif %}>확인중</option>
+          <option value="처리완료" {% if report.status == '처리완료' %}selected{% endif %}>처리완료</option>
+          <option value="오탐" {% if report.status == '오탐' %}selected{% endif %}>오탐</option>
+        </select>
+      </div>
+
+      <!-- 변경 사유 / 메모 -->
+      <div class="form-group">
+        <label for="memo" class="form-label">변경 사유 / 메모</label>
+        <textarea
+          name="memo"
+          id="memo"
+          class="form-textarea"
+          rows="4"
+          placeholder="상태 변경 사유나 관리자 메모를 입력하세요."
+        ></textarea>
+      </div>
+
+      <!-- 버튼 영역 -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          상태 변경 저장
+        </button>
+
+        <a href="{{ url_for('admin_report.report_list') }}" class="btn-secondary">
+          취소
+        </a>
+      </div>
+    </form>
+  </div>
+
+</section>
+
+{% endblock %}

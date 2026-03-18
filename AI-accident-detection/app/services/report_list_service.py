@@ -40,7 +40,7 @@ class ReportService:
 
         if report_file and report_file.file_path:
             file_type = report_file.file_type
-            file_url = "/" + report_file.file_path.replace("\\", "/")
+            file_url = "/static/" + report_file.file_path.replace("\\", "/")
             has_detection = ReportRepository.has_detection_by_file_id(report_file.id)
 
         return {
@@ -78,7 +78,7 @@ class ReportService:
             if has_detection:
                 return False
 
-            old_file_path = report_file.file_path
+            old_file_path = os.path.join("app", "static", report_file.file_path) if report_file.file_path else None
 
             if old_file_path and os.path.exists(old_file_path):
                 os.remove(old_file_path)
@@ -88,7 +88,7 @@ class ReportService:
 
         # 새 파일 업로드 처리
         if new_file and new_file.filename:
-            upload_dir = "static/uploads"
+            upload_dir = os.path.join("app", "static", "uploads")
             os.makedirs(upload_dir, exist_ok=True)
 
             original_name = secure_filename(new_file.filename)
@@ -98,7 +98,7 @@ class ReportService:
 
             new_file.save(save_path)
 
-            relative_path = save_path.replace("\\", "/")
+            relative_path = os.path.join("uploads", stored_name).replace("\\", "/")
             file_size = os.path.getsize(save_path)
 
             if new_file.mimetype and new_file.mimetype.startswith("image"):
@@ -121,7 +121,7 @@ class ReportService:
                         os.remove(save_path)
                     return False
 
-                old_file_path = report_file.file_path
+                old_file_path = os.path.join("app", "static", report_file.file_path) if report_file.file_path else None
                 ReportRepository.deactivate_report_file(report_file)
 
             ReportRepository.create_report_file(
@@ -156,8 +156,10 @@ class ReportService:
             if has_detection:
                 ReportRepository.deactivate_report_file(report_file)
             else:
-                if report_file.file_path and os.path.exists(report_file.file_path):
-                    os.remove(report_file.file_path)
+                full_file_path = os.path.join("app", "static", report_file.file_path) if report_file.file_path else None
+
+                if full_file_path and os.path.exists(full_file_path):
+                    os.remove(full_file_path)
 
                 ReportRepository.deactivate_report_file(report_file)
 
