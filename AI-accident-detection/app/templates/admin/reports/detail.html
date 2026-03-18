@@ -7,33 +7,33 @@
 {% endblock %}
 
 {% block admin_content %}
-
 <section class="admin-panel">
 
-  <div class="admin-page-header">
+  <div class="admin-page-header report-page-header">
     <div>
       <h1 class="admin-page-title">신고 상세</h1>
       <p class="admin-page-desc">
         신고 상세 내용을 확인하고 처리 상태를 변경할 수 있습니다.
       </p>
     </div>
+
+    <div class="report-page-actions">
+      <a href="{{ url_for('admin_report.report_list') }}" class="btn btn-outline">
+        목록으로
+      </a>
+    </div>
   </div>
 
   <div class="detail-grid">
 
-    <!-- 기본 정보 -->
+    <!-- 신고 기본 정보 -->
     <div class="detail-card">
-      <h2 class="detail-card-title">신고 기본 정보</h2>
+      <h2 class="detail-card-title">신고 정보</h2>
 
-      <div class="detail-list">
+      <div class="detail-info-grid">
         <div class="detail-item">
           <span class="detail-label">신고 ID</span>
-          <div class="detail-value">{{ report.id }}</div>
-        </div>
-
-        <div class="detail-item">
-          <span class="detail-label">제목</span>
-          <div class="detail-value">{{ report.title }}</div>
+          <div class="detail-value">#{{ report.id }}</div>
         </div>
 
         <div class="detail-item">
@@ -42,38 +42,23 @@
         </div>
 
         <div class="detail-item">
-          <span class="detail-label">위치</span>
-          <div class="detail-value">{{ report.location_text or '-' }}</div>
-        </div>
-
-        <div class="detail-item">
           <span class="detail-label">위험도</span>
-          <div class="detail-value">
-            {% if report.risk_level == '긴급' %}
-              <span class="badge badge-danger">{{ report.risk_level }}</span>
-            {% elif report.risk_level == '위험' %}
-              <span class="badge badge-risk">{{ report.risk_level }}</span>
-            {% elif report.risk_level == '주의' %}
-              <span class="badge badge-warning">{{ report.risk_level }}</span>
-            {% else %}
-              <span class="badge badge-success">{{ report.risk_level }}</span>
-            {% endif %}
-          </div>
+          <div class="detail-value">{{ report.risk_level or '-' }}</div>
         </div>
 
         <div class="detail-item">
-          <span class="detail-label">처리 상태</span>
-          <div class="detail-value">
-            {% if report.status == '처리완료' %}
-              <span class="badge badge-success">{{ report.status }}</span>
-            {% elif report.status == '오탐' %}
-              <span class="badge badge-secondary">{{ report.status }}</span>
-            {% elif report.status == '확인중' %}
-              <span class="badge badge-warning">{{ report.status }}</span>
-            {% else %}
-              <span class="badge badge-status">{{ report.status }}</span>
-            {% endif %}
-          </div>
+          <span class="detail-label">현재 상태</span>
+          <div class="detail-value">{{ report.status or '-' }}</div>
+        </div>
+
+        <div class="detail-item detail-item-full">
+          <span class="detail-label">제목</span>
+          <div class="detail-value">{{ report.title or '-' }}</div>
+        </div>
+
+        <div class="detail-item detail-item-full">
+          <span class="detail-label">위치</span>
+          <div class="detail-value">{{ report.location_text or '위치 정보 없음' }}</div>
         </div>
 
         <div class="detail-item">
@@ -90,7 +75,7 @@
       </div>
     </div>
 
-    <!-- 상태 변경 -->
+    <!-- 상태 변경 + 상태 이력 -->
     <div class="detail-card">
       <h2 class="detail-card-title">상태 변경</h2>
 
@@ -117,10 +102,10 @@
           <label for="status" class="form-label">변경할 상태</label>
           <select id="status" name="status" class="form-select" required>
             <option value="">상태 선택</option>
-            <option value="접수">접수</option>
-            <option value="확인중">확인중</option>
-            <option value="처리완료">처리완료</option>
-            <option value="오탐">오탐</option>
+            <option value="접수" {% if report.status == '접수' %}selected{% endif %}>접수</option>
+            <option value="확인중" {% if report.status == '확인중' %}selected{% endif %}>확인중</option>
+            <option value="처리완료" {% if report.status == '처리완료' %}selected{% endif %}>처리완료</option>
+            <option value="오탐" {% if report.status == '오탐' %}selected{% endif %}>오탐</option>
           </select>
         </div>
 
@@ -139,6 +124,33 @@
           상태 변경 저장
         </button>
       </form>
+
+      <div class="section-divider"></div>
+
+      <h2 class="detail-card-title">상태 변경 이력</h2>
+
+      {% if status_logs %}
+        <div class="history-list status-log-scroll-box">
+          {% for log in status_logs %}
+            <div class="history-item">
+              <div class="history-main">
+                <strong>{{ log.old_status or '없음' }}</strong>
+                →
+                <strong>{{ log.new_status }}</strong>
+              </div>
+              <div class="history-sub">
+                변경자: {{ log.changed_by_name }} /
+                메모: {{ log.memo or '-' }} /
+                일시: {{ log.created_at }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-box">
+          상태 변경 이력이 없습니다.
+        </div>
+      {% endif %}
     </div>
 
     <!-- 첨부 파일 -->
@@ -155,20 +167,33 @@
               </div>
 
               {% if file.file_type == '이미지' %}
-                <div class="report-file-preview">
+                <div class="report-file-preview media-preview-fixed media-wrapper">
                   <img
                     src="{{ url_for('static', filename=file.preview_path) }}"
                     alt="{{ file.original_name }}"
                     class="report-preview-image"
+                    id="image-{{ file.id }}"
                   >
+                  <canvas
+                    class="media-canvas"
+                    id="canvas-{{ file.id }}"
+                  ></canvas>
                 </div>
 
               {% elif file.file_type == '영상' %}
-                <div class="report-file-preview">
-                  <video controls class="report-preview-video">
-                    <source src="{{ url_for('static', filename=file.preview_path) }}">
+                <div class="report-file-preview media-preview-fixed media-wrapper">
+                  <video
+                    controls
+                    class="report-preview-video"
+                    id="video-{{ file.id }}"
+                  >
+                    <source src="{{ url_for('static', filename=file.preview_path) }}" type="video/mp4">
                     브라우저가 video 태그를 지원하지 않습니다.
                   </video>
+                  <canvas
+                    class="media-canvas"
+                    id="canvas-{{ file.id }}"
+                  ></canvas>
                 </div>
 
               {% else %}
@@ -186,65 +211,30 @@
       {% endif %}
     </div>
 
-    <!-- 상태 변경 이력 -->
-    <div class="detail-card detail-card-full">
-      <h2 class="detail-card-title">상태 변경 이력</h2>
-
-      {% if status_logs %}
-        <div class="history-list">
-          {% for log in status_logs %}
-            <div class="history-item">
-              <div class="history-main">
-                <strong>{{ log.old_status or '없음' }}</strong>
-                →
-                <strong>{{ log.new_status }}</strong>
-              </div>
-              <div class="history-sub">
-                변경자: {{ log.changed_by or '-' }} /
-                메모: {{ log.memo or '-' }} /
-                일시: {{ log.created_at }}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty-box">
-          상태 변경 이력이 없습니다.
-        </div>
-      {% endif %}
-    </div>
-
     <!-- AI 분석 결과 -->
     <div class="detail-card detail-card-full">
       <h2 class="detail-card-title">AI 분석 결과</h2>
 
-      {% if ai_analysis %}
-        <div class="history-list">
-          {% for ai in ai_analysis %}
-            <div class="history-item">
-              <div class="history-main">
-                탐지 객체: <strong>{{ ai.label_kor }}</strong>
-                ({{ ai.detected_label }})
-              </div>
-              <div class="history-sub">
-                신뢰도: {{ '%.2f'|format(ai.confidence) }} /
-                파일 ID: {{ ai.file_id }} /
-                탐지 시각: {{ ai.detected_at }}
-              </div>
-              <div class="history-sub">
-                BBox: {{ ai.bbox[0] }}, {{ ai.bbox[1] }}, {{ ai.bbox[2] }}, {{ ai.bbox[3] }}
-              </div>
-            </div>
-          {% endfor %}
+      <div class="ai-result-grid">
+        <!-- 왼쪽: 객체별 탐지 요약 -->
+        <div class="ai-result-panel">
+          <h3 class="ai-panel-title">객체별 탐지 요약</h3>
+          <div id="ai-summary-box" class="ai-summary-box"></div>
         </div>
-      {% else %}
-        <div class="empty-box">
-          AI 분석 결과가 아직 없습니다.
+
+        <!-- 오른쪽: 분석 결과 이력 -->
+        <div class="ai-result-panel">
+          <h3 class="ai-panel-title">분석 결과 이력</h3>
+          <div id="ai-history-box" class="history-list ai-scroll-box"></div>
         </div>
-      {% endif %}
+      </div>
     </div>
 
   </div>
 </section>
 
+<script id="ai-analysis-data" type="application/json">
+  {{ ai_analysis | tojson }}
+</script>
+<script src="{{ url_for('static', filename='js/admin_report_detail.js') }}"></script>
 {% endblock %}

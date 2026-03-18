@@ -132,7 +132,77 @@
       </table>
     </div>
   </div>
+<div class="dashboard-panel">
+  <div class="panel-header">
+    <div>
+      <h2 class="panel-title">대기 중인 권한 신청</h2>
+      <p class="panel-desc">
+        관리자 권한 요청을 확인하고 바로 승인 또는 거절할 수 있습니다.
+      </p>
+    </div>
 
+    <div>
+      <a href="{{ url_for('admin_user.role_request_list') }}" class="btn-secondary">
+        전체 보기
+      </a>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>요청 ID</th>
+          <th>신청자</th>
+          <th class="text-left">신청 사유</th>
+          <th>신청일</th>
+          <th>회원 상세</th>
+          <th>처리</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% if stats.pending_role_requests %}
+          {% for req in stats.pending_role_requests %}
+            <tr>
+              <td>{{ req.id }}</td>
+              <td>{{ req.name }} ({{ req.username }})</td>
+              <td class="text-left">{{ req.request_reason or "-" }}</td>
+              <td>{{ req.created_at }}</td>
+              <td>
+                <a
+                  href="{{ url_for('admin_user.user_detail', user_id=req.user_id) }}"
+                  class="btn-secondary"
+                >
+                  회원 보기
+                </a>
+              </td>
+              <td>
+                <div style="display:flex; gap:8px; justify-content:center;">
+                  <form method="POST" action="{{ url_for('admin_user.review_role_request', request_id=req.id) }}">
+                    <input type="hidden" name="status" value="승인">
+                    <button type="submit" class="btn">승인</button>
+                  </form>
+
+                  <form method="POST" action="{{ url_for('admin_user.review_role_request', request_id=req.id) }}">
+                    <input type="hidden" name="status" value="거절">
+                    <button type="submit" class="btn-danger">거절</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="empty-message">
+              대기 중인 권한 신청이 없습니다.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -261,75 +331,5 @@ new Chart(document.getElementById("monthlyBarChart"), {
   }
 });
 </script>
-<div class="dashboard-panel">
-  <div class="panel-header">
-    <div>
-      <h2 class="panel-title">대기 중인 권한 신청</h2>
-      <p class="panel-desc">
-        관리자 권한 요청을 확인하고 바로 승인 또는 거절할 수 있습니다.
-      </p>
-    </div>
 
-    <div>
-      <a href="{{ url_for('admin_user.role_request_list') }}" class="btn-secondary">
-        전체 보기
-      </a>
-    </div>
-  </div>
-
-  <div class="table-wrap">
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>요청 ID</th>
-          <th>신청자</th>
-          <th class="text-left">신청 사유</th>
-          <th>신청일</th>
-          <th>회원 상세</th>
-          <th>처리</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {% if stats.pending_role_requests %}
-          {% for req in stats.pending_role_requests %}
-            <tr>
-              <td>{{ req.id }}</td>
-              <td>{{ req.name }} ({{ req.username }})</td>
-              <td class="text-left">{{ req.request_reason or "-" }}</td>
-              <td>{{ req.created_at }}</td>
-              <td>
-                <a
-                  href="{{ url_for('admin_user.user_detail', user_id=req.user_id) }}"
-                  class="btn-secondary"
-                >
-                  회원 보기
-                </a>
-              </td>
-              <td>
-                <div style="display:flex; gap:8px; justify-content:center;">
-                  <form method="POST" action="{{ url_for('admin_user.review_role_request', request_id=req.id) }}">
-                    <input type="hidden" name="status" value="승인">
-                    <button type="submit" class="btn">승인</button>
-                  </form>
-
-                  <form method="POST" action="{{ url_for('admin_user.review_role_request', request_id=req.id) }}">
-                    <input type="hidden" name="status" value="거절">
-                    <button type="submit" class="btn-danger">거절</button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        {% else %}
-          <tr>
-            <td colspan="6" class="empty-message">
-              대기 중인 권한 신청이 없습니다.
-            </td>
-          </tr>
-        {% endif %}
-      </tbody>
-    </table>
-  </div>
-</div>
 {% endblock %}
