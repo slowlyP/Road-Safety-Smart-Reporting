@@ -26,6 +26,7 @@ def _check_admin():
 
 
 @admin_bp.route("/dashboard", methods=["GET"])
+@admin_bp.route("/dashboard/", methods=["GET"])
 def dashboard():
     """
     관리자 대시보드 페이지

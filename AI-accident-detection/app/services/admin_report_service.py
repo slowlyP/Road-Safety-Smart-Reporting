@@ -14,6 +14,7 @@ from app.models.report_model import Report
 from app.models.report_status_log_model import ReportStatusLog
 from app.models.report_file_model import ReportFile
 from app.models.detection_model import Detection
+from app.models.user_model import User
 
 
 class AdminReportService:
@@ -91,7 +92,7 @@ class AdminReportService:
         status_logs = (
             ReportStatusLog.query
             .filter(ReportStatusLog.report_id == report_id)
-            .order_by(ReportStatusLog.created_at.desc())
+            .order_by(ReportStatusLog.created_at.desc(), ReportStatusLog.id.desc())
             .all()
         )
 
@@ -115,14 +116,15 @@ class AdminReportService:
 
         file_list = []
         for f in files:
-            raw_path = getattr(f, "file_path", "") or ""
-            normalized_path = raw_path.replace("\\", "/").lstrip("/")
+            raw_path = (getattr(f, "file_path", "") or "").replace("\\", "/").lstrip("/")
 
-            # storage/ 또는 app/static/ 중 어디에 저장하든 템플릿에서 최대한 쓰기 쉽게 값 전달
-            if normalized_path.startswith("static/"):
-                preview_path = normalized_path[len("static/"):]
+            # static/uploads/... 형태면 static 기준 경로만 넘김
+            if raw_path.startswith("app/static/"):
+                preview_path = raw_path[len("app/static/"):]
+            elif raw_path.startswith("static/"):
+                preview_path = raw_path[len("static/"):]
             else:
-                preview_path = normalized_path
+                preview_path = raw_path
 
             file_list.append({
                 "id": f.id,
@@ -134,17 +136,24 @@ class AdminReportService:
                 "file_size": getattr(f, "file_size", 0)
             })
 
-        status_log_list = [
-            {
+        status_log_list = []
+        for log in status_logs:
+            manager_name = "-"
+
+            if log.changed_by:
+                admin_user = User.query.filter(User.id == log.changed_by).first()
+                if admin_user:
+                    manager_name = admin_user.name or admin_user.username or f"관리자#{log.changed_by}"
+
+            status_log_list.append({
                 "id": log.id,
                 "old_status": log.old_status,
                 "new_status": log.new_status,
                 "changed_by": log.changed_by,
+                "changed_by_name": manager_name,
                 "memo": log.memo,
                 "created_at": log.created_at.strftime("%Y-%m-%d %H:%M") if log.created_at else ""
-            }
-            for log in status_logs
-        ]
+            })
 
         ai_analysis = [
             {
@@ -180,6 +189,11 @@ class AdminReportService:
             raise ValueError("존재하지 않는 신고입니다.")
 
         old_status = report.status
+
+        # 같은 상태면 로그 저장하지 않음
+        if old_status == status:
+            return None
+
         report.status = status
 
         status_log = ReportStatusLog(
@@ -187,7 +201,7 @@ class AdminReportService:
             old_status=old_status,
             new_status=status,
             changed_by=changed_by,
-            memo=memo,
+            memo=memo if memo else None,
             created_at=datetime.now()
         )
 
