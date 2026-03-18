@@ -1,8 +1,7 @@
-from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
+from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for, current_app
 from app.services.report_service import ReportService
-# 공통 응답 함수 import 
+# 공통 응답 함수 import
 from app.common.response import success_response, error_response
-
 
 # Blueprint 생성
 report_bp = Blueprint('report', __name__)
@@ -16,27 +15,29 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/report/create', methods=['GET'])
     def create_report_page():
-        # 조장님 로그인 세션 확인 로직 적용
+
         user_id = session.get('user_id')
 
         if not user_id:
             # 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
             return redirect(url_for('auth.login'))
 
-        return render_template('report/create.html')
+        # config 에 등록된 구글 맵 API 키를 가져옴
+        api_key = current_app.config.get('GOOGLE_MAPS_API_KEY')
+
+        return render_template('report/create.html', google_maps_api_key=api_key)
 
     @staticmethod
     @report_bp.route('/api/report', methods=['POST'])
     def create_report():
 
         current_user_id = session.get('user_id')
-        
+
         if not current_user_id:
             return error_response(
                 message="로그인이 필요한 서비스 입니다.",
                 status_code=401
             )
-                
 
         try:
             # 데이터 및 파일 수신
@@ -67,7 +68,7 @@ class ReportRoute:
         except ValueError as ve:
             # 파일 형식 오류 등 비즈니스 로직 에러 처리
             return error_response(
-                message=str(ve), 
+                message=str(ve),
                 status_code=400
             )
 

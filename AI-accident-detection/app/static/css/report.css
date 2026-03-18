@@ -142,17 +142,17 @@ input:focus, textarea:focus { outline: none; border-color: var(--rg-main-orange)
 }
 
 /* 2. 주소창 내부의 X 버튼 및 목록의 각 항목들 */
-.pac-item,
-.pac-item *,
-.pac-icon,
-.dismiss-button,
+.pac-item, 
+.pac-item *, 
+.pac-icon, 
+.dismiss-button, 
 .pac-container .close-icon {
     cursor: pointer !important;
 }
 
 /* 3. 역할이 버튼인 모든 요소 강제 적용 (가장 확실함) */
-[role="button"],
-[role="option"],
+[role="button"], 
+[role="option"], 
 .pac-matched {
     cursor: pointer !important;
 }

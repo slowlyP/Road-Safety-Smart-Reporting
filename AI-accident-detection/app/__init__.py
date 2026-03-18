@@ -3,8 +3,10 @@ Flask 애플리케이션을 생성하는 파일
 """
 
 from flask import Flask, session
+from werkzeug.exceptions import RequestEntityTooLarge
 from .config import Config
 from .extensions import db, migrate
+from app.common.response import error_response
 
 
 def create_app():
@@ -15,6 +17,17 @@ def create_app():
     )
 
     app.config.from_object(Config)
+
+    # -------------------------------------------------
+    # 전역 업로드 용량 초과(413) 처리
+    # - Config.MAX_CONTENT_LENGTH를 초과하면 여기로 떨어짐
+    # -------------------------------------------------
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_request_too_large(e):
+        return error_response(
+            message="업로드 가능한 최대 용량(50MB)을 초과했습니다.",
+            status_code=413
+        )
 
     # DB 초기화
     db.init_app(app)

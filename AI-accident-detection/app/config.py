@@ -39,3 +39,10 @@ class Config:
 
     # SQLAlchemy 불필요한 이벤트 추적 비활성화 (성능 향상)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB
+
+    # 구글 지도 api
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
