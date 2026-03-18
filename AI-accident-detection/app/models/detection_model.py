@@ -46,3 +46,15 @@ class Detection(db.Model):
         db.DateTime,
         server_default=db.func.current_timestamp()
     )
+    @property
+    def label_kor(self):
+        # DB에 저장된 영문 클래스 네임을 한글로 매핑
+        label_map = {
+            "box": "박스형",
+            "bag": "봉투류",
+            "tire": "타이어",
+            "rock": "낙석",
+            "debris": "나머지 파편"
+        }
+        # 만약 매핑에 없으면 영문 그대로 표시
+        return label_map.get(self.detected_label, self.detected_label)

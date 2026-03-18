@@ -1,0 +1,250 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}신고 상세{% endblock %}
+
+{% block admin_extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_reports.css') }}">
+{% endblock %}
+
+{% block admin_content %}
+
+<section class="admin-panel">
+
+  <div class="admin-page-header">
+    <div>
+      <h1 class="admin-page-title">신고 상세</h1>
+      <p class="admin-page-desc">
+        신고 상세 내용을 확인하고 처리 상태를 변경할 수 있습니다.
+      </p>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+
+    <!-- 기본 정보 -->
+    <div class="detail-card">
+      <h2 class="detail-card-title">신고 기본 정보</h2>
+
+      <div class="detail-list">
+        <div class="detail-item">
+          <span class="detail-label">신고 ID</span>
+          <div class="detail-value">{{ report.id }}</div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">제목</span>
+          <div class="detail-value">{{ report.title }}</div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">신고 방식</span>
+          <div class="detail-value">{{ report.report_type or '-' }}</div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">위치</span>
+          <div class="detail-value">{{ report.location_text or '-' }}</div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">위험도</span>
+          <div class="detail-value">
+            {% if report.risk_level == '긴급' %}
+              <span class="badge badge-danger">{{ report.risk_level }}</span>
+            {% elif report.risk_level == '위험' %}
+              <span class="badge badge-risk">{{ report.risk_level }}</span>
+            {% elif report.risk_level == '주의' %}
+              <span class="badge badge-warning">{{ report.risk_level }}</span>
+            {% else %}
+              <span class="badge badge-success">{{ report.risk_level }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">처리 상태</span>
+          <div class="detail-value">
+            {% if report.status == '처리완료' %}
+              <span class="badge badge-success">{{ report.status }}</span>
+            {% elif report.status == '오탐' %}
+              <span class="badge badge-secondary">{{ report.status }}</span>
+            {% elif report.status == '확인중' %}
+              <span class="badge badge-warning">{{ report.status }}</span>
+            {% else %}
+              <span class="badge badge-status">{{ report.status }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">등록일</span>
+          <div class="detail-value">{{ report.created_at }}</div>
+        </div>
+
+        <div class="detail-item detail-item-full">
+          <span class="detail-label">신고 내용</span>
+          <div class="detail-value detail-content-box">
+            {{ report.content or '신고 내용이 없습니다.' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 상태 변경 -->
+    <div class="detail-card">
+      <h2 class="detail-card-title">상태 변경</h2>
+
+      <form
+        method="POST"
+        action="{{ url_for('admin_report.update_report_status', report_id=report.id) }}"
+        class="status-form"
+      >
+        <div class="status-current-box">
+          <span class="status-current-label">현재 상태</span>
+
+          {% if report.status == '처리완료' %}
+            <span class="badge badge-success">{{ report.status }}</span>
+          {% elif report.status == '오탐' %}
+            <span class="badge badge-secondary">{{ report.status }}</span>
+          {% elif report.status == '확인중' %}
+            <span class="badge badge-warning">{{ report.status }}</span>
+          {% else %}
+            <span class="badge badge-status">{{ report.status }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="status" class="form-label">변경할 상태</label>
+          <select id="status" name="status" class="form-select" required>
+            <option value="">상태 선택</option>
+            <option value="접수">접수</option>
+            <option value="확인중">확인중</option>
+            <option value="처리완료">처리완료</option>
+            <option value="오탐">오탐</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="memo" class="form-label">관리 메모</label>
+          <textarea
+            id="memo"
+            name="memo"
+            class="form-textarea"
+            rows="4"
+            placeholder="상태 변경 사유 또는 메모를 입력하세요."
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          상태 변경 저장
+        </button>
+      </form>
+    </div>
+
+    <!-- 첨부 파일 -->
+    <div class="detail-card detail-card-full">
+      <h2 class="detail-card-title">첨부 파일</h2>
+
+      {% if files %}
+        <div class="report-file-grid">
+          {% for file in files %}
+            <div class="report-file-card">
+              <div class="report-file-meta">
+                <div class="report-file-name">{{ file.original_name }}</div>
+                <div class="report-file-type">{{ file.file_type }}</div>
+              </div>
+
+              {% if file.file_type == '이미지' %}
+                <div class="report-file-preview">
+                  <img
+                    src="{{ url_for('static', filename=file.preview_path) }}"
+                    alt="{{ file.original_name }}"
+                    class="report-preview-image"
+                  >
+                </div>
+
+              {% elif file.file_type == '영상' %}
+                <div class="report-file-preview">
+                  <video controls class="report-preview-video">
+                    <source src="{{ url_for('static', filename=file.preview_path) }}">
+                    브라우저가 video 태그를 지원하지 않습니다.
+                  </video>
+                </div>
+
+              {% else %}
+                <div class="empty-box">
+                  미리보기를 지원하지 않는 파일 형식입니다.
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-box">
+          첨부된 파일이 없습니다.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 상태 변경 이력 -->
+    <div class="detail-card detail-card-full">
+      <h2 class="detail-card-title">상태 변경 이력</h2>
+
+      {% if status_logs %}
+        <div class="history-list">
+          {% for log in status_logs %}
+            <div class="history-item">
+              <div class="history-main">
+                <strong>{{ log.old_status or '없음' }}</strong>
+                →
+                <strong>{{ log.new_status }}</strong>
+              </div>
+              <div class="history-sub">
+                변경자: {{ log.changed_by or '-' }} /
+                메모: {{ log.memo or '-' }} /
+                일시: {{ log.created_at }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-box">
+          상태 변경 이력이 없습니다.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- AI 분석 결과 -->
+    <div class="detail-card detail-card-full">
+      <h2 class="detail-card-title">AI 분석 결과</h2>
+
+      {% if ai_analysis %}
+        <div class="history-list">
+          {% for ai in ai_analysis %}
+            <div class="history-item">
+              <div class="history-main">
+                탐지 객체: <strong>{{ ai.label_kor }}</strong>
+                ({{ ai.detected_label }})
+              </div>
+              <div class="history-sub">
+                신뢰도: {{ '%.2f'|format(ai.confidence) }} /
+                파일 ID: {{ ai.file_id }} /
+                탐지 시각: {{ ai.detected_at }}
+              </div>
+              <div class="history-sub">
+                BBox: {{ ai.bbox[0] }}, {{ ai.bbox[1] }}, {{ ai.bbox[2] }}, {{ ai.bbox[3] }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-box">
+          AI 분석 결과가 아직 없습니다.
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

@@ -14,10 +14,10 @@
     <form id="reportForm" action="{{ url_for('report.create_report') }}" method="POST" enctype="multipart/form-data">
         <section class="form-section">
             <h3><i class="fa-solid fa-camera"></i> 사진 및 영상 첨부</h3>
-            <div id="drop-zone" class="upload-box">
+            <div id="drop-zone" class="upload-box" onclick="document.getElementById('fileInput').click()">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                <p>파일을 끌어다 놓거나 클릭하세요</p>
-                <input type="file" id="fileInput" name="files" accept="image/*,video/*" hidden>
+                <p>파일을 여기로 끌어다 놓거나 클릭하세요</p>
+                <input type="file" id="fileInput" name="files" accept="image/*,video/*" multiple hidden>
                 <div id="file-preview" class="preview-container"></div>
             </div>
         </section>
@@ -25,7 +25,7 @@
         <section class="form-section">
             <h3><i class="fa-solid fa-location-dot"></i> 발생 위치</h3>
             <div class="location-group">
-                <input type="text" id="location_text" name="location_text" placeholder="주소를 입력하거나 지도를 클릭하세요">
+                <input type="text" id="location_text" name="location_text" placeholder="주소를 입력하거나 지도를 클릭하세요" readonly>
                 <button type="button" id="openMapBtn" class="btn-secondary" onclick="openMapModal()">지도에서 선택하기</button>
             </div>
             <input type="hidden" id="latitude" name="latitude">
@@ -54,15 +54,16 @@
             <h4><i class="fa-solid fa-map-location-dot"></i> 위치 선택</h4>
             <span class="close-modal" onclick="closeMapModal()">&times;</span>
         </div>
-        <div id="map" style="width: 100%; height: 350px;"></div>
+        <div id="map" style="width: 100%; height: 350px; background-color: #eee;"></div>
 
-<div style="padding: 10px 20px 0 20px;">
-    <button type="button" class="btn-secondary" style="width: 100%;" onclick="getCurrentLocation()">
-        <i class="fa-solid fa-location-crosshairs"></i> 내 현재 위치 찾기
-    </button>
-</div>
-
-<button type="button" id="confirmLocationBtn" class="btn-confirm-location" onclick="confirmLocation()">이 위치로 지정</button>
+        <div style="padding: 10px 20px 0 20px;">
+            <button type="button" class="btn-secondary" style="width: 100%;" onclick="getCurrentLocation()">
+                <i class="fa-solid fa-location-crosshairs"></i> 내 현재 위치 찾기
+            </button>
+        </div>
+        <div style="padding: 20px;">
+            <button type="button" id="confirmLocationBtn" class="btn-confirm-location" style="width: 100%;" onclick="confirmLocation()">이 위치로 지정</button>
+        </div>
     </div>
 </div>
 {% endblock %}

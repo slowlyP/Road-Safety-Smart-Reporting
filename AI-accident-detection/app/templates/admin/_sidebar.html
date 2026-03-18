@@ -1,66 +1,68 @@
-{#
-  관리자 공통 사이드바 메뉴
-
-  - 모든 관리자 페이지에서 공통으로 사용되는 네비게이션 메뉴
-  - layout.html에서 include로 불러와서 사용한다.
-  - 관리자 주요 기능 페이지로 이동할 수 있다.
-#}
+{% set endpoint = request.endpoint or '' %}
 
 <aside class="admin-sidebar">
 
-  {# 사이드바 상단 로고 / 제목 영역 #}
-  <div class="admin-sidebar-header">
-    <h2>관리자 메뉴</h2>
+  <div>
+    <div class="admin-sidebar-header">
+      <h2>관리자</h2>
+    </div>
+
+    <nav class="admin-nav">
+      <ul>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin.dashboard') }}"
+            class="{% if endpoint == 'admin.dashboard' %}active{% endif %}"
+          >
+            대시보드
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_user.user_list') }}"
+            class="{% if endpoint.startswith('admin_user.') %}active{% endif %}"
+          >
+            회원 관리
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_report.report_list') }}"
+            class="{% if endpoint.startswith('admin_report.') %}active{% endif %}"
+          >
+            신고 관리
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_ai.list') }}"
+            class="{% if endpoint.startswith('admin_ai.') %}active{% endif %}"
+          >
+            AI 로그
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_user.role_request_list') }}"
+            class="{% if endpoint == 'admin_user.role_request_list' %}active{% endif %}"
+          >
+            권한 신청 관리
+          </a>
+        </li>
+
+      </ul>
+    </nav>
   </div>
 
-  {# 관리자 기능 네비게이션 #}
-  <nav class="admin-nav">
-    <ul>
-
-      {# 관리자 대시보드 메인 페이지 #}
-      <li class="admin-nav-item">
-        <a href="{{ url_for('admin_dashboard.dashboard') }}">대시보드</a>
-      </li>
-
-      {# 전체 신고 관리 페이지 #}
-      <li class="admin-nav-item">
-        <a href="{{ url_for('admin_report.report_list') }}">
-          신고 관리
-        </a>
-      </li>
-
-      {# AI 탐지 분석 결과 페이지 #}{# {{ url_for('admin.ai_analysis_list') }} #}
-      <li class="admin-nav-item">
-        <a href="#">
-          AI 분석 결과
-        </a>
-      </li>
-
-      {# 실시간 탐지 알림 목록 페이지 #}{#{{ url_for('admin.alert_list') }}#}
-      <li class="admin-nav-item">
-        <a href="#">
-          알림 목록
-        </a>
-      </li>
-
-      {# 관리자 권한 신청 목록 관리 #}{# {{ url_for('admin.role_request_list') }} #}
-      <li class="admin-nav-item">
-        <a href="#">
-          권한 신청 관리
-        </a>
-      </li>
-
-    </ul>
-  </nav>
-
-  {# 사이드바 하단 영역 (옵션) #}
   <div class="admin-sidebar-footer">
-
-    {# 메인 사이트로 이동 버튼 #}
     <a href="{{ url_for('main.index') }}" class="admin-back-link">
-      메인 페이지로
+      메인으로 돌아가기
     </a>
-
   </div>
 
 </aside>

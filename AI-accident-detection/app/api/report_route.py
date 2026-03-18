@@ -1,8 +1,12 @@
-from flask import Blueprint, request, jsonify, render_template
-from app.services.report_service import ReportService # 수정된 클래스 기반 서비스 임포트
+from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
+from app.services.report_service import ReportService
+# 공통 응답 함수 import 
+from app.common.response import success_response, error_response
+
 
 # Blueprint 생성
 report_bp = Blueprint('report', __name__)
+
 
 class ReportRoute:
     """
@@ -12,29 +16,65 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/report/create', methods=['GET'])
     def create_report_page():
-        """
-        신고 등록 HTML 페이지를 렌더링합니다.
-        """
+        # 조장님 로그인 세션 확인 로직 적용
+        user_id = session.get('user_id')
+
+        if not user_id:
+            # 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
+            return redirect(url_for('auth.login'))
+
         return render_template('report/create.html')
 
     @staticmethod
     @report_bp.route('/api/report', methods=['POST'])
     def create_report():
-        """
-        신고 데이터를 접수받아 처리합니다.
-        """
+
+        current_user_id = session.get('user_id')
+        
+        if not current_user_id:
+            return error_response(
+                message="로그인이 필요한 서비스 입니다.",
+                status_code=401
+            )
+                
+
         try:
+            # 데이터 및 파일 수신
             form_data = request.form
             upload_file = request.files.get('files')
 
+            # 파일 유효성 검사
             if not upload_file or upload_file.filename == '':
-                return jsonify({"error": "첨부된 파일이 없습니다."}), 400
+                return error_response(
+                    message="첨부된 파일이 없습니다.",
+                    status_code=400
+                )
 
-            # 클래스 기반으로 바뀐 서비스를 호출합니다.
-            ReportService.process_report_submission(form_data, upload_file)
+            # 서비스 레이어 호출 (YOLO 분석 및 DB 저장)
+            result = ReportService.process_report_submission(
+                current_user_id,
+                form_data,
+                upload_file
+            )
 
-            return jsonify({'message': "신고가 성공적으로 접수되었습니다."}), 200
+            # 성공 시 결과 반환 (함수 종료 지점)
+            return success_response(
+                data=result,
+                message="신고가 성공적으로 접수되었습니다."
+            )
+
+
+        except ValueError as ve:
+            # 파일 형식 오류 등 비즈니스 로직 에러 처리
+            return error_response(
+                message=str(ve), 
+                status_code=400
+            )
 
         except Exception as e:
+            # 예상치 못한 시스템 에러 처리
             print(f"Route Error: {e}")
-            return jsonify({"error": "신고 접수 중 오류가 발생했습니다."}), 500
+            return error_response(
+                message="신고 접수 중 서버 오류가 발생했습니다.",
+                status_code=500
+            )

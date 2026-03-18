@@ -46,17 +46,20 @@ def create_app():
     from app.api.main_routes import main_bp
     from app.api.report_route import report_bp
     from app.api.detect_routes import detect_bp
-    from app.api.admin_dashboard_routes import admin_dashboard_bp
+    from app.api.admin_routes import admin_bp
     from app.api.admin_report_routes import admin_report_bp
     from app.api.admin_user_routes import admin_user_bp
+    from app.api.admin_ai_routes import admin_ai_bp
+    from app.api.report_list_routes import report_list_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(detect_bp)
-    app.register_blueprint(admin_dashboard_bp)
+    app.register_blueprint(admin_bp)
     app.register_blueprint(admin_report_bp)
     app.register_blueprint(admin_user_bp)
-
+    app.register_blueprint(admin_ai_bp)
+    app.register_blueprint(report_list_bp)
 
     return app
