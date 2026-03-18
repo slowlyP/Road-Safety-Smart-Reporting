@@ -17,6 +17,7 @@
             <div id="drop-zone" class="upload-box" onclick="document.getElementById('fileInput').click()">
                 <i class="fa-solid fa-cloud-arrow-up"></i>
                 <p>파일을 여기로 끌어다 놓거나 클릭하세요</p>
+                <p>(영상 길이 30초이하)</p>
                 <input type="file" id="fileInput" name="files" accept="image/*,video/*" multiple hidden>
                 <div id="file-preview" class="preview-container"></div>
             </div>
@@ -70,5 +71,6 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/report.js') }}"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLwEyP8KZVYo3D9MrJ09CEbPX_x7qHmcA&libraries=places&callback=initMap"></script>
+{# 하드코딩된 키 대신 서버에서 넘겨준 google_maps_api_key 변수를 사용합니다 #}
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap"></script>
 {% endblock %}

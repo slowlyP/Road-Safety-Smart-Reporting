@@ -519,31 +519,6 @@ a {
   font-size: 12px;
   font-weight: 700;
 }
-/* ===== 뱃지 + 버튼 한줄 ===== */
-
-.report-meta-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  gap: 12px;
-}
-
-.detail-btn {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: #ff5a2f;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 700;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(255, 90, 47, 0.3);
-}
-
-.detail-btn:hover {
-  background: #e64a1f;
-}
 /* 반응형 */
 
 @media (max-width: 1100px) {

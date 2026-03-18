@@ -69,14 +69,10 @@ function createReportCard(report) {
         ${escapeHtml(report.content || "내용이 없습니다.")}
       </div>
 
-      <div class="report-meta-row">
-        <div class="report-meta">
-          <span class="meta-badge badge-type">${escapeHtml(report.file_type || "일반")}</span>
-          <span class="meta-badge badge-location">${escapeHtml(report.location_text || "위치 정보 없음")}</span>
-          <span class="meta-badge ${getStatusClass(report.status)}">${escapeHtml(report.status || "-")}</span>
-        </div>
-
-        <a href="/reports/${report.id}/page" class="detail-btn">상세보기</a>
+      <div class="report-meta">
+        <span class="meta-badge badge-type">${escapeHtml(report.report_type || "-")}</span>
+        <span class="meta-badge badge-location">${escapeHtml(report.location_text || "위치 정보 없음")}</span>
+        <span class="meta-badge ${getStatusClass(report.status)}">${escapeHtml(report.status || "-")}</span>
       </div>
     </article>
   `;

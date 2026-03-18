@@ -15,7 +15,7 @@ class ReportStatusLog(db.Model):
 
     old_status = db.Column(
         db.Enum("접수", "확인중", "처리완료", "오탐"),
-        nullable=False
+        nullable=True
     )
 
     new_status = db.Column(

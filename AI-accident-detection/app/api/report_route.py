@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for
+from flask import Blueprint, request, jsonify, render_template, session, redirect, url_for, current_app
 from app.services.report_service import ReportService
 # 공통 응답 함수 import 
 from app.common.response import success_response, error_response
+
 
 
 # Blueprint 생성
@@ -16,14 +17,19 @@ class ReportRoute:
     @staticmethod
     @report_bp.route('/report/create', methods=['GET'])
     def create_report_page():
-        # 조장님 로그인 세션 확인 로직 적용
+        
         user_id = session.get('user_id')
 
         if not user_id:
             # 로그인 안 되어 있으면 로그인 페이지로 리다이렉트
             return redirect(url_for('auth.login'))
+        
+        # config 에 등록된 구글 맵 API 키를 가져옴
+        api_key = current_app.config.get('GOOGLE_MAPS_API_KEY')
 
-        return render_template('report/create.html')
+        return render_template('report/create.html', google_maps_api_key=api_key)
+
+
 
     @staticmethod
     @report_bp.route('/api/report', methods=['POST'])
