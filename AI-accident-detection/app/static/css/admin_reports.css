@@ -1,0 +1,312 @@
+/* ========================================
+   관리자 신고 페이지 전용 스타일
+======================================== */
+
+.report-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.report-page-summary {
+  min-width: 140px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.report-summary-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #9fb0cc;
+  margin-bottom: 8px;
+}
+
+.report-summary-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.report-list-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.report-admin-table th,
+.report-admin-table td {
+  white-space: nowrap;
+}
+
+.report-title-cell {
+  min-width: 260px;
+  max-width: 380px;
+}
+
+.report-title-link {
+  color: #f4f7fc;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.report-title-link:hover {
+  color: #ff8c5a;
+}
+
+.report-date-cell {
+  color: #aab7cf;
+  font-size: 0.92rem;
+}
+
+.report-detail-btn {
+  min-width: 96px;
+}
+
+/* 검색 / 필터 */
+.admin-filter-form {
+  margin-bottom: 20px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.filter-group {
+  min-width: 180px;
+  flex: 1;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #cfd7ea;
+  font-weight: 700;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 상세 공통 */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.detail-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.detail-card-spacing {
+  margin-top: 24px;
+}
+
+.detail-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 18px;
+}
+
+.report-content-box {
+  min-height: 220px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #d9e1f2;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.status-placeholder {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  text-align: center;
+  color: #ffb08a;
+  background: rgba(255, 122, 31, 0.08);
+  border: 1px dashed rgba(255, 122, 31, 0.25);
+}
+
+
+/* 첨부 파일 미리보기 */
+.file-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.file-preview-item {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.file-preview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #d9e1f2;
+  word-break: break-all;
+}
+
+.preview-image,
+.preview-video {
+  width: 100%;
+  display: block;
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.preview-image {
+  max-height: 360px;
+  object-fit: cover;
+}
+
+.preview-video {
+  max-height: 360px;
+}
+
+.file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.file-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-meta-item span {
+  font-size: 0.84rem;
+  color: #98a6c2;
+}
+
+.file-meta-item strong {
+  font-size: 0.9rem;
+  color: #f3f6fc;
+  word-break: break-all;
+}
+
+/* 첨부 파일 영역 */
+.report-file-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.report-file-card {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.report-file-meta {
+  margin-bottom: 12px;
+}
+
+.report-file-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+
+.report-file-type {
+  font-size: 0.9rem;
+  color: #aeb9d6;
+}
+
+.report-file-preview {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+/* 이미지 */
+.report-preview-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 520px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* 영상 */
+.report-preview-video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 520px;
+  border-radius: 12px;
+  background: #000;
+}
+
+@media (max-width: 992px) {
+  .detail-grid,
+  .file-preview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .report-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .report-page-summary {
+    width: 100%;
+    text-align: left;
+  }
+
+  .report-summary-value {
+    font-size: 1.5rem;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+}

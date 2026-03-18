@@ -3,11 +3,10 @@
    - 관리자 레이아웃
    - 사이드바
    - 콘텐츠 영역
-   - 공통 패널 / 테이블 / 배지
+   - 공통 패널 / 테이블 / 배지 / 버튼
 ======================================== */
 
-/* 관리자 전체 페이지 레이아웃
-   좌측 사이드바 + 우측 콘텐츠 구조 */
+/* 관리자 전체 페이지 레이아웃 */
 .admin-page {
   display: flex;
   min-height: calc(100vh - 160px);
@@ -18,7 +17,6 @@
    사이드바
 ======================================== */
 
-/* 관리자 왼쪽 사이드바 */
 .admin-sidebar {
   width: 260px;
   min-width: 260px;
@@ -30,37 +28,26 @@
   justify-content: space-between;
 }
 
-/* 사이드바 상단 제목 영역 */
 .admin-sidebar-header {
   margin-bottom: 28px;
 }
 
-/* 관리자 메뉴 제목 */
 .admin-sidebar-header h2 {
   font-size: 1.2rem;
   font-weight: 700;
   color: #ffffff;
 }
 
-/* 사이드바 네비게이션 전체 */
 .admin-nav ul {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.admin-nav-item a.active:hover {
-  background: linear-gradient(135deg, rgba(255, 90, 31, 0.16), rgba(255, 122, 31, 0.1));
-  color: #ff8c5a;
-  border-color: rgba(255, 122, 31, 0.25);
-}
-
-/* 메뉴 아이템 기본 */
 .admin-nav-item {
   width: 100%;
 }
 
-/* 메뉴 링크 */
 .admin-nav-item a {
   display: flex;
   align-items: center;
@@ -76,15 +63,12 @@
   border: 1px solid transparent;
 }
 
-/* 메뉴 호버 */
 .admin-nav-item a:hover {
   background: rgba(255, 255, 255, 0.05);
   color: #ff8c5a;
   border-color: rgba(255, 255, 255, 0.06);
 }
 
-/* 현재 활성 메뉴에 사용할 수 있는 클래스
-   필요 시 템플릿에서 class="active" 부여 */
 .admin-nav-item a.active {
   background: linear-gradient(135deg, rgba(255, 90, 31, 0.16), rgba(255, 122, 31, 0.1));
   color: #ff8c5a;
@@ -92,14 +76,18 @@
   font-weight: 700;
 }
 
-/* 사이드바 하단 영역 */
+.admin-nav-item a.active:hover {
+  background: linear-gradient(135deg, rgba(255, 90, 31, 0.16), rgba(255, 122, 31, 0.1));
+  color: #ff8c5a;
+  border-color: rgba(255, 122, 31, 0.25);
+}
+
 .admin-sidebar-footer {
   margin-top: 32px;
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* 메인 페이지로 이동 링크 */
 .admin-back-link {
   display: inline-flex;
   align-items: center;
@@ -116,7 +104,6 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* 메인 페이지 이동 링크 호버 */
 .admin-back-link:hover {
   color: #ff8c5a;
   border-color: rgba(255, 122, 31, 0.25);
@@ -127,19 +114,16 @@
    본문 콘텐츠 영역
 ======================================== */
 
-/* 오른쪽 관리자 메인 콘텐츠 영역 */
 .admin-content {
   flex: 1;
   min-width: 0;
   padding: 32px;
 }
 
-/* 관리자 페이지 내부 공통 제목 영역이 필요할 때 사용 */
 .admin-page-header {
   margin-bottom: 24px;
 }
 
-/* 관리자 페이지 제목 */
 .admin-page-title {
   font-size: 1.8rem;
   font-weight: 800;
@@ -147,7 +131,6 @@
   margin-bottom: 8px;
 }
 
-/* 관리자 페이지 설명 */
 .admin-page-desc {
   color: #aeb8cf;
   font-size: 0.98rem;
@@ -158,7 +141,6 @@
    공통 패널 / 카드
 ======================================== */
 
-/* 박스 형태 공통 패널 */
 .dashboard-panel,
 .admin-panel {
   background: rgba(255, 255, 255, 0.04);
@@ -168,7 +150,6 @@
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
 }
 
-/* 패널 헤더 */
 .panel-header {
   display: flex;
   align-items: flex-start;
@@ -177,7 +158,6 @@
   margin-bottom: 18px;
 }
 
-/* 패널 제목 */
 .panel-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -185,13 +165,11 @@
   margin-bottom: 6px;
 }
 
-/* 패널 설명 */
 .panel-desc {
   color: #9ba8c3;
   font-size: 0.93rem;
 }
 
-/* 패널 우측 링크 */
 .panel-link {
   color: #ff8c5a;
   font-size: 0.93rem;
@@ -200,12 +178,10 @@
   white-space: nowrap;
 }
 
-/* 패널 링크 호버 */
 .panel-link:hover {
   color: #ffb08a;
 }
 
-/* 비어 있는 상태 메시지 공통 박스 */
 .empty-box {
   padding: 24px;
   border-radius: 16px;
@@ -215,24 +191,27 @@
   border: 1px dashed rgba(255, 255, 255, 0.08);
 }
 
+.empty-message {
+  text-align: center !important;
+  color: #98a6c2 !important;
+  padding: 24px 12px !important;
+}
+
 /* ========================================
    공통 테이블
 ======================================== */
 
-/* 테이블이 넘칠 경우 가로 스크롤 허용 */
 .table-wrap {
   width: 100%;
   overflow-x: auto;
 }
 
-/* 관리자 공통 테이블 */
 .admin-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 680px;
 }
 
-/* 테이블 헤더 셀 */
 .admin-table thead th {
   text-align: center;
   padding: 14px 12px;
@@ -243,7 +222,6 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
-/* 테이블 바디 셀 */
 .admin-table tbody td {
   text-align: center;
   padding: 14px 12px;
@@ -253,33 +231,22 @@
   vertical-align: middle;
 }
 
-/* 텍스트 왼쪽 정렬이 필요한 셀 */
 .admin-table .text-left {
   text-align: left;
 }
 
-/* 마지막 줄 border 제거 */
 .admin-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* 행 호버 효과 */
 .admin-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.03);
-}
-
-/* 데이터 없음 메시지 셀 */
-.empty-message {
-  text-align: center !important;
-  color: #98a6c2 !important;
-  padding: 24px 12px !important;
 }
 
 /* ========================================
    공통 배지
 ======================================== */
 
-/* 공통 배지 기본형 */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -293,56 +260,52 @@
   white-space: nowrap;
 }
 
-/* 위험도 배지 기본 */
 .badge-risk {
   background: rgba(255, 107, 44, 0.12);
   color: #ff9b6f;
   border: 1px solid rgba(255, 107, 44, 0.22);
 }
 
-/* 상태 배지 기본 */
 .badge-status {
   background: rgba(255, 209, 102, 0.12);
   color: #ffd166;
   border: 1px solid rgba(255, 209, 102, 0.2);
 }
 
-/* 대기 상태 배지 */
 .badge-pending {
   background: rgba(104, 180, 255, 0.12);
   color: #7fc3ff;
   border: 1px solid rgba(104, 180, 255, 0.2);
 }
 
-/* 완료 상태 배지 예시 */
 .badge-success {
   background: rgba(66, 211, 146, 0.12);
   color: #62dba1;
   border: 1px solid rgba(66, 211, 146, 0.2);
 }
 
-/* 경고 상태 배지 예시 */
 .badge-warning {
   background: rgba(255, 209, 102, 0.12);
   color: #ffd166;
   border: 1px solid rgba(255, 209, 102, 0.2);
 }
 
-/* 위험 상태 배지 예시 */
 .badge-danger {
   background: rgba(255, 99, 132, 0.12);
   color: #ff8ba5;
   border: 1px solid rgba(255, 99, 132, 0.2);
 }
 
+.badge-secondary {
+  background: rgba(180, 180, 180, 0.12);
+  color: #d0d0d0;
+  border: 1px solid rgba(180, 180, 180, 0.2);
+}
+
 /* ========================================
-   공통 버튼 보조 스타일
+   공통 버튼 / 폼
 ======================================== */
 
-/* btn 클래스는 common.css의 것을 사용하고,
-   여기서는 관리자 화면에서 추가로 쓰는 보조 클래스만 정의 */
-
-/* 회색 계열 관리자 보조 버튼 */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -359,62 +322,104 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* 보조 버튼 호버 */
 .btn-secondary:hover {
   color: #ff8c5a;
   border-color: rgba(255, 122, 31, 0.25);
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* ========================================
-   공통 리스트 / 아이템
-======================================== */
-
-/* 카드형 목록에서 사용하는 아이템 */
-.request-item,
-.list-item-card {
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* 카드형 목록 아이템끼리 간격 */
-.request-list,
-.card-list {
+.form-group {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
-/* 요청 카드 상단 정보 */
-.request-item-top {
+.form-label {
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: #f3f6fc;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f7fb;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-select option {
+  background: #1b2238;
+  color: #f5f7fb;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: rgba(255, 122, 31, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 122, 31, 0.12);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 110px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   공통 페이지네이션
+======================================== */
+
+.pagination-wrap {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+.pagination {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* 사용자명 */
-.request-user {
-  font-size: 1rem;
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #dbe4f7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #ffffff;
+  transition: 0.2s ease;
 }
 
-/* 신청 사유 */
-.request-reason {
-  color: #c8d2e7;
-  font-size: 0.94rem;
-  line-height: 1.6;
-  margin-bottom: 10px;
+.page-btn:hover {
+  color: #ff8c5a;
+  border-color: rgba(255, 122, 31, 0.25);
+  background: rgba(255, 255, 255, 0.08);
 }
 
-/* 추가 정보 */
-.request-meta {
-  font-size: 0.87rem;
-  color: #97a6c5;
+.page-btn.active {
+  background: linear-gradient(135deg, rgba(255, 90, 31, 0.18), rgba(255, 122, 31, 0.12));
+  color: #ff9f75;
+  border-color: rgba(255, 122, 31, 0.25);
+}
+
+.page-ellipsis {
+  color: #98a6c2;
+  padding: 0 4px;
 }
 
 /* ========================================
@@ -485,34 +490,10 @@
     min-width: 560px;
   }
 }
+
 /* ========================================
-   상세 페이지 공통 스타일
+   공통 상세 / 상태 폼
 ======================================== */
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.detail-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  padding: 24px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-}
-
-.detail-card-spacing {
-  margin-top: 24px;
-}
-
-.detail-card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 18px;
-}
 
 .detail-list {
   display: flex;
@@ -545,36 +526,6 @@
   line-height: 1.6;
 }
 
-.report-content-box {
-  min-height: 220px;
-  padding: 18px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #d9e1f2;
-  line-height: 1.7;
-  white-space: pre-line;
-}
-
-.status-placeholder {
-  margin-top: 16px;
-  padding: 18px;
-  border-radius: 16px;
-  text-align: center;
-  color: #ffb08a;
-  background: rgba(255, 122, 31, 0.08);
-  border: 1px dashed rgba(255, 122, 31, 0.25);
-}
-
-@media (max-width: 992px) {
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-}
-/* ========================================
-   상태 변경 폼 스타일
-======================================== */
-
 .status-form {
   margin-top: 18px;
   display: flex;
@@ -599,547 +550,9 @@
   color: #cfd7ea;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-label {
-  font-size: 0.93rem;
-  font-weight: 700;
-  color: #f3f6fc;
-}
-
-.form-select,
-.form-textarea {
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #f5f7fb;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-select option {
-  background: #1b2238;
-  color: #f5f7fb;
-}
-
-.form-select:focus,
-.form-textarea:focus {
-  border-color: rgba(255, 122, 31, 0.4);
-  box-shadow: 0 0 0 3px rgba(255, 122, 31, 0.12);
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 110px;
-  line-height: 1.6;
-}
-
 .form-actions {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-
-
-/* ========================================
-   관리자 신고 목록 페이지
-======================================== */
-
-.report-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.report-page-summary {
-  min-width: 140px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: center;
-}
-
-.report-summary-label {
-  display: block;
-  font-size: 0.9rem;
-  color: #9fb0cc;
-  margin-bottom: 8px;
-}
-
-.report-summary-value {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.report-list-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  padding: 24px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-}
-
-.report-admin-table th,
-.report-admin-table td {
-  white-space: nowrap;
-}
-
-.report-title-cell {
-  min-width: 260px;
-  max-width: 380px;
-}
-
-.report-title-link {
-  color: #f4f7fc;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.report-title-link:hover {
-  color: #ff8c5a;
-}
-
-.report-date-cell {
-  color: #aab7cf;
-  font-size: 0.92rem;
-}
-
-.report-detail-btn {
-  min-width: 96px;
-}
-
-/* 오탐 상태용 보조 배지 */
-.badge-secondary {
-  background: rgba(180, 180, 180, 0.12);
-  color: #d0d0d0;
-  border: 1px solid rgba(180, 180, 180, 0.2);
-}
-
-@media (max-width: 768px) {
-  .report-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .report-page-summary {
-    width: 100%;
-    text-align: left;
-  }
-
-  .report-summary-value {
-    font-size: 1.5rem;
-  }
-}
-
-/* ========================================
-   관리자 대시보드
-======================================== */
-
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.dashboard-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  padding: 24px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-}
-
-.card-title {
-  font-size: 0.95rem;
-  color: #9fb0cc;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.card-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.dashboard-chart-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.chart-card,
-.recent-report-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  padding: 24px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-}
-
-.chart-title,
-.recent-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 18px;
-}
-
-.chart-box {
-  position: relative;
-  width: 100%;
-  height: 320px;
-}
-
-.chart-box canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.recent-report-card a {
-  color: #f4f7fc;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.recent-report-card a:hover {
-  color: #ff8c5a;
-}
-
-@media (max-width: 992px) {
-  .dashboard-cards,
-  .dashboard-chart-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ========================================
-   회원 관리 페이지
-======================================== */
-
-.admin-action-cell {
-  min-width: 190px;
-}
-
-.role-form,
-.delete-form {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 2px 0;
-}
-
-.role-select {
-  min-width: 84px;
-  height: 36px;
-  padding: 0 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f5f7fb;
-  font-size: 0.88rem;
-  font-weight: 600;
-  outline: none;
-}
-
-.role-select:focus {
-  border-color: rgba(255, 122, 31, 0.35);
-  box-shadow: 0 0 0 3px rgba(255, 122, 31, 0.12);
-}
-
-.btn-role-update {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 62px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(66, 211, 146, 0.22);
-  background: rgba(66, 211, 146, 0.14);
-  color: #62dba1;
-  font-size: 0.86rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-role-update:hover {
-  background: rgba(66, 211, 146, 0.2);
-  border-color: rgba(66, 211, 146, 0.35);
-}
-
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 62px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 99, 132, 0.22);
-  background: rgba(255, 99, 132, 0.14);
-  color: #ff8ba5;
-  font-size: 0.86rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-danger:hover {
-  background: rgba(255, 99, 132, 0.2);
-  border-color: rgba(255, 99, 132, 0.35);
-}
-
-/* 상태 변경 select */
-.form-select {
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #f5f7fb;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  appearance: none;
-}
-
-/* 드롭다운 펼쳤을 때 옵션 색상 */
-.form-select option {
-  background: #1b2238;
-  color: #f5f7fb;
-}
-
-/* placeholder 성격의 첫 옵션을 약간 흐리게 */
-.form-select option[value=""] {
-  color: #9aa8c7;
-}
-
-/* 통계 카드 */
-
-.dashboard-stats{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:20px;
-margin-bottom:30px;
-}
-
-.stat-card{
-background:rgba(255,255,255,0.04);
-padding:22px;
-border-radius:16px;
-border:1px solid rgba(255,255,255,0.05);
-}
-
-.stat-title{
-font-size:0.85rem;
-color:#9aa8c7;
-margin-bottom:8px;
-}
-
-.stat-value{
-font-size:1.8rem;
-font-weight:700;
-color:#fff;
-}
-
-
-/* 차트 */
-
-.dashboard-chart-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-margin-bottom:30px;
-}
-
-.chart-card{
-background:rgba(255,255,255,0.04);
-padding:24px;
-border-radius:16px;
-border:1px solid rgba(255,255,255,0.05);
-}
-
-.chart-title{
-font-size:1rem;
-font-weight:600;
-margin-bottom:14px;
-color:#fff;
-}
-
-.chart-card canvas{
-max-height:260px;
-}
-
-/* ========================================
-   대시보드 차트 레이아웃
-======================================== */
-
-.dashboard-chart-layout {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 22px;
-  align-items: stretch;
-}
-
-.donut-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-
-.mini-chart-card {
-  padding: 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.mini-chart-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 14px;
-}
-
-.chart-box {
-  position: relative;
-  width: 100%;
-}
-
-.small-chart-box {
-  height: 270px;
-}
-
-.bar-chart-box {
-  height: 360px;
-}
-
-.chart-box canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* 최근 신고 링크 */
-.dashboard-panel .admin-table a {
-  color: #f4f7fc;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.dashboard-panel .admin-table a:hover {
-  color: #ff8c5a;
-}
-
-@media (max-width: 1280px) {
-  .dashboard-chart-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .donut-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .small-chart-box {
-    height: 240px;
-  }
-
-  .bar-chart-box {
-    height: 300px;
-  }
-}
-/* ========================================
-   신고 첨부 파일 미리보기
-======================================== */
-
-.file-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 16px;
-}
-
-.file-preview-item {
-  padding: 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.file-preview-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.file-name {
-  font-size: 0.9rem;
-  color: #d9e1f2;
-  word-break: break-all;
-}
-
-.preview-image,
-.preview-video {
-  width: 100%;
-  display: block;
-  border-radius: 14px;
-  background: #0f172a;
-}
-
-.preview-image {
-  max-height: 360px;
-  object-fit: cover;
-}
-
-.preview-video {
-  max-height: 360px;
-}
-
-.file-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.file-meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.file-meta-item span {
-  font-size: 0.84rem;
-  color: #98a6c2;
-}
-
-.file-meta-item strong {
-  font-size: 0.9rem;
-  color: #f3f6fc;
-  word-break: break-all;
-}
-
-@media (max-width: 992px) {
-  .file-preview-grid {
-    grid-template-columns: 1fr;
-  }
 }

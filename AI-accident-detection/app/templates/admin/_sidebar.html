@@ -1,61 +1,68 @@
+{% set endpoint = request.endpoint or '' %}
+
 <aside class="admin-sidebar">
 
-    <div>
-        <div class="admin-sidebar-header">
-            <h2>ADMIN</h2>
-        </div>
-
-        <nav class="admin-nav">
-            <ul>
-                <li class="admin-nav-item">
-                    <a
-                        href="{{ url_for('admin_dashboard.dashboard') }}"
-                        class="{% if request.endpoint == 'admin_dashboard.dashboard' %}active{% endif %}"
-                    >
-                        대시보드
-                    </a>
-                </li>
-
-                <li class="admin-nav-item">
-                    <a
-                        href="{{ url_for('admin_report.report_list') }}"
-                        class="{% if request.endpoint in ['admin_report.report_list', 'admin_report.report_detail'] %}active{% endif %}"
-                    >
-                        신고관리
-                    </a>
-                </li>
-
-                <li class="admin-nav-item">
-                    <a href="#">
-                        AI 탐지 로그
-                    </a>
-                </li>
-
-                <li class="admin-nav-item">
-                    <a
-                        href="{{ url_for('admin_user.user_list') }}"
-                        class="{% if request.endpoint == 'admin_user.user_list' %}active{% endif %}"
-                    >
-                        회원관리
-                    </a>
-                </li>
-
-                <li class="admin-nav-item">
-                    <a
-                        href="{{ url_for('admin_role_request.role_request_list') }}"
-                        class="{% if request.endpoint in ['admin_role_request.role_request_list', 'admin_role_request.role_request_detail'] %}active{% endif %}"
-                    >
-                        권한 신청
-                    </a>
-                </li>
-            </ul>
-        </nav>
+  <div>
+    <div class="admin-sidebar-header">
+      <h2>관리자</h2>
     </div>
 
-    <div class="admin-sidebar-footer">
-        <a href="{{ url_for('main.index') }}" class="admin-back-link">
-            메인으로
-        </a>
-    </div>
+    <nav class="admin-nav">
+      <ul>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin.dashboard') }}"
+            class="{% if endpoint == 'admin.dashboard' %}active{% endif %}"
+          >
+            대시보드
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_user.user_list') }}"
+            class="{% if endpoint.startswith('admin_user.') %}active{% endif %}"
+          >
+            회원 관리
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_report.report_list') }}"
+            class="{% if endpoint.startswith('admin_report.') %}active{% endif %}"
+          >
+            신고 관리
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_ai.list') }}"
+            class="{% if endpoint.startswith('admin_ai.') %}active{% endif %}"
+          >
+            AI 로그
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_user.role_request_list') }}"
+            class="{% if endpoint == 'admin_user.role_request_list' %}active{% endif %}"
+          >
+            권한 신청 관리
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+  </div>
+
+  <div class="admin-sidebar-footer">
+    <a href="{{ url_for('main.index') }}" class="admin-back-link">
+      메인으로 돌아가기
+    </a>
+  </div>
 
 </aside>

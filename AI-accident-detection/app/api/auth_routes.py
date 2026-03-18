@@ -150,23 +150,6 @@ def logout():
     return redirect(url_for("main.index"))
 
 
-@auth_bp.route("/mypage", methods=["GET"])
-def mypage():
-    """
-    마이페이지
-    """
-
-    if "user_id" not in session:
-        return redirect(url_for("auth.login"))
-
-    user = UserRepository.get_user_by_id(session["user_id"])
-
-    return render_template(
-        "auth/mypage.html",
-        user=user
-    )
-
-
 @auth_bp.route("/role-request", methods=["GET", "POST"])
 def role_request():
     """

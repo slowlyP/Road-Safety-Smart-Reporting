@@ -2,23 +2,24 @@ import os
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from app.extensions import db 
-from app.models import Report, ReportFile, Detection, ReportStatusLog 
-from app.services.yolo_service import detect_image, detect_video 
+from app.extensions import db
+from app.models import Report, ReportFile, Detection, ReportStatusLog
+from app.services.yolo_service import detect_image, detect_video
 
 # DB 저장용 영문 매핑
 LABEL_MAP = {
-    0: "box", 
+    0: "box",
     1: "bag",
     2: "tire",
     3: "rock",
     4: "debris"
 }
 
+
 class ReportService:
     # [설정] 허용할 확장자와 최대 용량
     ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.mp4', '.avi', '.mov'}
-    MAX_FILE_SIZE = 50 * 1024 * 1024 # 50MB
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
     @staticmethod
     def process_report_submission(user_id, form_data, upload_file):
@@ -28,7 +29,7 @@ class ReportService:
             # -------------------------------------------------------
             if not upload_file or upload_file.filename == '':
                 raise ValueError("첨부된 파일이 없습니다.")
-            
+
             original_name = secure_filename(upload_file.filename)
             ext = os.path.splitext(original_name)[1].lower()
 
@@ -38,7 +39,7 @@ class ReportService:
             # 용량 체크
             upload_file.seek(0, os.SEEK_END)
             file_size = upload_file.tell()
-            upload_file.seek(0) # 검사 후 다시 처음으로 돌려놔야 저장 가능
+            upload_file.seek(0)  # 검사 후 다시 처음으로 돌려놔야 저장 가능
 
             if file_size > ReportService.MAX_FILE_SIZE:
                 raise ValueError("파일 용량은 50MB를 넘을 수 없습니다.")
@@ -55,7 +56,7 @@ class ReportService:
                 user_id=user_id,
                 title=form_data.get('title'),
                 content=form_data.get('content'),
-                report_type=final_report_type, # [수정] inferred_type 로직 반영
+                report_type=final_report_type,  # [수정] inferred_type 로직 반영
                 location_text=form_data.get('location_text') or '위치 정보 없음',
                 latitude=float(form_data.get('latitude') or 0.0),
                 longitude=float(form_data.get('longitude') or 0.0),
@@ -70,12 +71,12 @@ class ReportService:
             # -------------------------------------------------------
             stored_name = f"{uuid.uuid4().hex}{ext}"
             upload_folder = os.path.join('app', 'static', 'uploads')
-            
+
             if not os.path.exists(upload_folder):
                 os.makedirs(upload_folder)
 
             file_path = os.path.join(upload_folder, stored_name)
-            upload_file.save(file_path) # 물리 파일 저장
+            upload_file.save(file_path)  # 물리 파일 저장
 
             new_file = ReportFile(
                 report_id=new_report.id,
@@ -136,7 +137,7 @@ class ReportService:
                                 created_at=datetime.now()
                             )
                             db.session.add(new_det)
-                    
+
                     new_report.risk_level = risk_level_names.get(highest_score, "주의")
                     memo = f"AI 분석 결과 {new_report.risk_level} 등급 낙하물 탐지"
                 else:
@@ -159,7 +160,7 @@ class ReportService:
 
             except Exception as ai_e:
                 print(f"AI Error: {ai_e}")
-                new_report.status = "접수" # 에러 시 기본값 유지
+                new_report.status = "접수"  # 에러 시 기본값 유지
 
             db.session.commit()
             return True

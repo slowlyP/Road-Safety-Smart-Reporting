@@ -12,62 +12,175 @@ from datetime import datetime
 from app.extensions import db
 from app.models.report_model import Report
 from app.models.report_status_log_model import ReportStatusLog
+from app.models.report_file_model import ReportFile
+from app.models.detection_model import Detection
 
 
 class AdminReportService:
-
-    def get_report_list(self):
+    def get_report_list(self, page=1, per_page=10, status=None, risk_level=None, keyword=None):
         """
         관리자 신고 목록 조회
+        - 페이징
+        - 상태 필터
+        - 위험도 필터
+        - 키워드 검색
         """
-        reports = (
-            Report.query
-            .filter(Report.deleted_at.is_(None))
-            .order_by(Report.created_at.desc())
-            .all()
+
+        query = Report.query.filter(Report.deleted_at.is_(None))
+
+        if status:
+            query = query.filter(Report.status == status)
+
+        if risk_level:
+            query = query.filter(Report.risk_level == risk_level)
+
+        if keyword:
+            search = f"%{keyword}%"
+            query = query.filter(Report.title.like(search))
+
+        pagination = query.order_by(Report.created_at.desc()).paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
         )
 
-        result = []
-
-        for r in reports:
-            result.append({
+        reports = [
+            {
                 "id": r.id,
                 "title": r.title,
                 "risk_level": r.risk_level,
                 "status": r.status,
                 "created_at": r.created_at.strftime("%Y-%m-%d %H:%M") if r.created_at else ""
-            })
+            }
+            for r in pagination.items
+        ]
 
-        return result
+        return {
+            "reports": reports,
+            "pagination": pagination
+        }
 
     def get_report_detail(self, report_id):
         """
         관리자 신고 상세 조회
+        - 신고 기본 정보
+        - 첨부 파일 목록
+        - 상태 변경 이력
+        - AI 분석 결과
         """
-        report = Report.query.get_or_404(report_id)
 
-        return {
+        report = Report.query.filter(
+            Report.id == report_id,
+            Report.deleted_at.is_(None)
+        ).first()
+
+        if not report:
+            raise ValueError("존재하지 않는 신고입니다.")
+
+        files = (
+            ReportFile.query
+            .filter(
+                ReportFile.report_id == report_id,
+                ReportFile.deleted_at.is_(None),
+                ReportFile.is_active.is_(True)
+            )
+            .order_by(ReportFile.id.asc())
+            .all()
+        )
+
+        status_logs = (
+            ReportStatusLog.query
+            .filter(ReportStatusLog.report_id == report_id)
+            .order_by(ReportStatusLog.created_at.desc())
+            .all()
+        )
+
+        detections = (
+            Detection.query
+            .filter(Detection.report_id == report_id)
+            .order_by(Detection.detected_at.desc(), Detection.id.desc())
+            .all()
+        )
+
+        report_data = {
             "id": report.id,
             "title": report.title,
             "content": report.content,
             "risk_level": report.risk_level,
             "status": report.status,
+            "report_type": report.report_type,
+            "location_text": report.location_text,
             "created_at": report.created_at.strftime("%Y-%m-%d %H:%M") if report.created_at else ""
+        }
+
+        file_list = []
+        for f in files:
+            raw_path = getattr(f, "file_path", "") or ""
+            normalized_path = raw_path.replace("\\", "/").lstrip("/")
+
+            # storage/ 또는 app/static/ 중 어디에 저장하든 템플릿에서 최대한 쓰기 쉽게 값 전달
+            if normalized_path.startswith("static/"):
+                preview_path = normalized_path[len("static/"):]
+            else:
+                preview_path = normalized_path
+
+            file_list.append({
+                "id": f.id,
+                "original_name": getattr(f, "original_name", ""),
+                "stored_name": getattr(f, "stored_name", ""),
+                "file_path": raw_path,
+                "preview_path": preview_path,
+                "file_type": getattr(f, "file_type", ""),
+                "file_size": getattr(f, "file_size", 0)
+            })
+
+        status_log_list = [
+            {
+                "id": log.id,
+                "old_status": log.old_status,
+                "new_status": log.new_status,
+                "changed_by": log.changed_by,
+                "memo": log.memo,
+                "created_at": log.created_at.strftime("%Y-%m-%d %H:%M") if log.created_at else ""
+            }
+            for log in status_logs
+        ]
+
+        ai_analysis = [
+            {
+                "id": d.id,
+                "file_id": d.file_id,
+                "detected_label": d.detected_label,
+                "label_kor": d.label_kor,
+                "confidence": float(d.confidence) if d.confidence is not None else 0,
+                "bbox": [d.bbox_x1, d.bbox_y1, d.bbox_x2, d.bbox_y2],
+                "detected_at": d.detected_at.strftime("%Y-%m-%d %H:%M") if d.detected_at else ""
+            }
+            for d in detections
+        ]
+
+        return {
+            "report": report_data,
+            "files": file_list,
+            "status_logs": status_log_list,
+            "ai_analysis": ai_analysis
         }
 
     def update_report_status(self, report_id, status, changed_by=None, memo=None):
         """
         관리자 신고 상태 변경
         """
-        report = Report.query.get_or_404(report_id)
+
+        report = Report.query.filter(
+            Report.id == report_id,
+            Report.deleted_at.is_(None)
+        ).first()
+
+        if not report:
+            raise ValueError("존재하지 않는 신고입니다.")
 
         old_status = report.status
-
-        if old_status == status:
-            return None
-
         report.status = status
-        report.updated_at = datetime.now()
 
         status_log = ReportStatusLog(
             report_id=report.id,
@@ -81,4 +194,4 @@ class AdminReportService:
         db.session.add(status_log)
         db.session.commit()
 
-        return report
+        return True
