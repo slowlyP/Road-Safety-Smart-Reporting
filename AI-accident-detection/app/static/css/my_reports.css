@@ -555,3 +555,27 @@ a {
     gap: 6px;
   }
 }
+
+/* ================= 비활성화 버튼 스타일 ================= */
+
+/* 삭제 버튼 비활성화 */
+.delete-file-btn:disabled {
+  background: #f3f4f6;      /* 연한 회색 */
+  color: #9ca3af;           /* 글자 흐리게 */
+  border: 1px solid #e5e7eb;
+  cursor: not-allowed;      /* 금지 커서 */
+}
+
+/* 파일 선택 버튼 비활성화 (label) */
+.edit-file-upload-btn.disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border: 1px solid #e5e7eb;
+  cursor: not-allowed;
+}
+
+/* 파일 input 비활성화 */
+.edit-file-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

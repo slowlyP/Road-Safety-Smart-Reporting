@@ -29,3 +29,12 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
 });
+
+<script>
+  setTimeout(function () {
+    const toastMessages = document.querySelectorAll(".toast-message");
+    toastMessages.forEach(function (msg) {
+      msg.style.display = "none";
+    });
+  }, 3000);
+</script>

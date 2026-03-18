@@ -333,3 +333,44 @@ body {
     width: 100%;
   }
 }
+
+/* flash 메시지 영역 */
+.flash-message-wrap {
+  margin-bottom: 16px;
+}
+
+/* 공통 메시지 박스 */
+.toast-message {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+}
+
+/* 성공 메시지 */
+.toast-success {
+  background: #e8faee;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+/* 에러 메시지 */
+.toast-error {
+  background: #fff1f2;
+  color: #dc2626;
+  border-color: #fecdd3;
+}
+
+/* 첨부파일 링크 (파일 보기) */
+.file-download-link {
+  color: #111827;          /* 진한 검정 */
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* hover 효과 */
+.file-download-link:hover {
+  color: #ff5a2f;          /* 주황 강조 */
+}

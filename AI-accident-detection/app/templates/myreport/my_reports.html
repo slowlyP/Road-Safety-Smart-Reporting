@@ -3,6 +3,7 @@
 {% block title %}내 신고 목록 | 404 R·N·F AI{% endblock %}
 
 {% block extra_css %}
+<!-- 내 신고 목록 전용 CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/my_reports.css') }}">
 {% endblock %}
 
@@ -23,18 +24,18 @@
       </div>
 
       <div class="profile-action-group">
-      <a href="{{ url_for('auth.update_profile') }}" class="dark-btn action-btn">
-        프로필 수정
-      </a>
+        <a href="{{ url_for('auth.update_profile') }}" class="dark-btn action-btn">
+          프로필 수정
+        </a>
 
-      <a href="{{ url_for('auth.role_request') }}" class="outline-btn action-btn">
-        관리자 권한 신청
-      </a>
+        <a href="{{ url_for('auth.role_request') }}" class="outline-btn action-btn">
+          관리자 권한 신청
+        </a>
 
-      <a href="{{ url_for('auth.delete_account') }}" class="danger-btn action-btn">
-        회원탈퇴
-      </a>
-    </div>
+        <a href="{{ url_for('auth.delete_account') }}" class="danger-btn action-btn">
+          회원탈퇴
+        </a>
+      </div>
     </section>
 
     <section class="card-box alert-card moved-alert-card">
@@ -98,6 +99,19 @@
   </aside>
 
   <section class="right-panel">
+    <!-- flash 메시지 출력 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-message-wrap">
+          {% for category, message in messages %}
+            <div class="toast-message toast-{{ category }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <section class="summary-row">
       <div class="summary-card">
         <div class="summary-icon red">📋</div>
@@ -176,5 +190,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- 내 신고 목록 JS -->
 <script src="{{ url_for('static', filename='js/my_reports.js') }}"></script>
 {% endblock %}
