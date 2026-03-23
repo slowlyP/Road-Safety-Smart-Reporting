@@ -167,40 +167,25 @@
               </div>
 
               {% if file.file_type == '이미지' %}
-                <div class="report-file-preview media-preview-fixed media-wrapper">
-                  <img
-                    src="{{ url_for('static', filename=file.preview_path) }}"
-                    alt="{{ file.original_name }}"
-                    class="report-preview-image"
-                    id="image-{{ file.id }}"
-                  >
-                  <canvas
-                    class="media-canvas"
-                    id="canvas-{{ file.id }}"
-                  ></canvas>
-                </div>
+              <div class="report-file-preview media-preview-fixed media-wrapper" data-file-id="{{ file.id }}">
+                <img
+                  src="{{ url_for('static', filename=file.preview_path) }}"
+                  alt="{{ file.original_name }}"
+                  class="report-preview-image"
+                  id="image-{{ file.id }}"
+                >
+                <canvas class="media-canvas" id="canvas-{{ file.id }}"></canvas>
+              </div>
 
-              {% elif file.file_type == '영상' %}
-                <div class="report-file-preview media-preview-fixed media-wrapper">
-                  <video
-                    controls
-                    class="report-preview-video"
-                    id="video-{{ file.id }}"
-                  >
-                    <source src="{{ url_for('static', filename=file.preview_path) }}" type="video/mp4">
-                    브라우저가 video 태그를 지원하지 않습니다.
-                  </video>
-                  <canvas
-                    class="media-canvas"
-                    id="canvas-{{ file.id }}"
-                  ></canvas>
-                </div>
-
-              {% else %}
-                <div class="empty-box">
-                  미리보기를 지원하지 않는 파일 형식입니다.
-                </div>
-              {% endif %}
+            {% elif file.file_type == '영상' %}
+              <div class="report-file-preview media-preview-fixed media-wrapper" data-file-id="{{ file.id }}">
+                <video controls class="report-preview-video" id="video-{{ file.id }}">
+                  <source src="{{ url_for('static', filename=file.preview_path) }}" type="video/mp4">
+                  브라우저가 video 태그를 지원하지 않습니다.
+                </video>
+                <canvas class="media-canvas" id="canvas-{{ file.id }}"></canvas>
+              </div>
+            {% endif %}
             </div>
           {% endfor %}
         </div>
