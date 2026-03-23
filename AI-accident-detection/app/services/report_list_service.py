@@ -40,7 +40,13 @@ class ReportService:
 
         if report_file and report_file.file_path:
             file_type = report_file.file_type
-            file_url = "/static/" + report_file.file_path.replace("\\", "/")
+            normalized_path = report_file.file_path.replace("\\", "/")
+
+            if normalized_path.startswith("static/"):
+                file_url = "/" + normalized_path
+            else:
+                file_url = "/static/" + normalized_path
+
             has_detection = ReportRepository.has_detection_by_file_id(report_file.id)
 
         return {

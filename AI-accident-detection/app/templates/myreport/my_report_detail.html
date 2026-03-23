@@ -3,24 +3,25 @@
 {% block title %}신고 상세보기 | 404 R·N·F AI{% endblock %}
 
 {% block extra_css %}
-<!-- 상세보기 전용 CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/report_detail.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="detail-page">
+
   <!-- flash 메시지 출력 -->
   {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  <div class="flash-message-wrap">
-    {% for category, message in messages %}
-    <div class="toast-message toast-{{ category }}">
-      {{ message }}
+    {% if messages %}
+    <div class="flash-message-wrap">
+      {% for category, message in messages %}
+      <div class="toast-message toast-{{ category }}">
+        {{ message }}
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+    {% endif %}
   {% endwith %}
+
   <!-- 상단 헤더 영역 -->
   <div class="detail-header">
     <div>
@@ -28,7 +29,6 @@
       <p class="detail-page-subtitle">신고한 내용을 자세히 확인할 수 있습니다.</p>
     </div>
 
-    <!-- 목록 이동 버튼 -->
     <a href="{{ url_for('report_list.my_reports_page') }}" class="back-btn">
       목록으로
     </a>
@@ -43,7 +43,6 @@
         <p class="detail-date">{{ report.created_at or '-' }}</p>
       </div>
 
-      <!-- 상태 표시 -->
       <span class="detail-status
         {% if report.status == '접수' %}received{% endif %}
         {% if report.status == '확인중' %}checking{% endif %}
@@ -86,15 +85,18 @@
           alt="신고 이미지"
           class="detail-image-file"
         >
+
         {% elif report.file_url and report.file_type == "영상" %}
         <video controls class="detail-video-preview">
-          <source src="{{ report.file_url }}">
+          <source src="{{ report.file_url }}" type="video/mp4">
           브라우저가 영상을 지원하지 않습니다.
         </video>
+
         {% elif report.file_url %}
         <a href="{{ report.file_url }}" target="_blank" class="file-download-link">
           파일 보기
         </a>
+
         {% else %}
         <p class="image-empty-text">등록된 파일이 없습니다.</p>
         {% endif %}
@@ -104,10 +106,11 @@
     <!-- 버튼 영역 -->
     <div class="detail-action-buttons">
 
-      <!-- 수정 버튼 (접수 상태만 가능) -->
       {% if report.status == '접수' %}
-      <a href="{{ url_for('report_list.edit_report_page', report_id=report.id) }}"
-         class="detail-edit-btn">
+      <a
+        href="{{ url_for('report_list.edit_report_page', report_id=report.id) }}"
+        class="detail-edit-btn"
+      >
         수정
       </a>
       {% else %}
@@ -116,7 +119,6 @@
       </button>
       {% endif %}
 
-      <!-- 삭제 버튼 -->
       <form
         action="{{ url_for('report_list.delete_report', report_id=report.id) }}"
         method="post"

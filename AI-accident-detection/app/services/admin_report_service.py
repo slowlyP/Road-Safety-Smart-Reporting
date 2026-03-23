@@ -99,7 +99,7 @@ class AdminReportService:
         detections = (
             Detection.query
             .filter(Detection.report_id == report_id)
-            .order_by(Detection.detected_at.desc(), Detection.id.desc())
+            .order_by(Detection.time_sec.asc(), Detection.id.asc())
             .all()
         )
 
@@ -163,8 +163,14 @@ class AdminReportService:
                 "label_kor": d.label_kor,
                 "confidence": float(d.confidence) if d.confidence is not None else 0,
                 "bbox": [d.bbox_x1, d.bbox_y1, d.bbox_x2, d.bbox_y2],
+                "frame_no": d.frame_no,
+                "time_sec": float(d.time_sec) if d.time_sec is not None else None,
+                "frame_width": d.frame_width,
+                "frame_height": d.frame_height,
+
                 "detected_at": d.detected_at.strftime("%Y-%m-%d %H:%M") if d.detected_at else ""
             }
+
             for d in detections
         ]
 

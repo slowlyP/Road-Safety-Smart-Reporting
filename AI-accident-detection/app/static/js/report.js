@@ -63,12 +63,17 @@ function initAutocomplete() {
 
 // 3. 좌표 및 주소 텍스트 업데이트
 function updatePosition(latLng) {
+    if (!latLng) return;
+
     document.getElementById("latitude").value = latLng.lat();
     document.getElementById("longitude").value = latLng.lng();
 
     geocoder.geocode({ location: latLng }, (results, status) => {
-        if (status === "OK" && results[0]) {
+        if (status === "OK" && results && results[0]) {
             document.getElementById("location_text").value = results[0].formatted_address;
+        } else {
+            console.error("주소 변환 실패:", status);
+            document.getElementById("location_text").value = "주소를 불러오지 못했습니다.";
         }
     });
 }
@@ -87,20 +92,55 @@ function closeMapModal() {
 }
 
 function confirmLocation() {
+    if (!marker) {
+        alert("위치를 먼저 선택하세요.");
+        return;
+    }
+
+    const position = marker.getPosition();
+    updatePosition(position);   // 현재 마커 위치를 주소/좌표로 다시 반영
     closeMapModal();
 }
 
 // 5. 내 현재 위치 찾기
 function getCurrentLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
+    if (!navigator.geolocation) {
+        alert("이 브라우저에서는 현재 위치 기능을 지원하지 않습니다.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+
             map.setCenter(pos);
             map.setZoom(17);
             marker.setPosition(pos);
             updatePosition(new google.maps.LatLng(pos.lat, pos.lng));
-        });
-    }
+        },
+        (error) => {
+            console.error("현재 위치 가져오기 실패:", error);
+
+            let message = "현재 위치를 가져올 수 없습니다.";
+            if (error.code === 1) {
+                message = "위치 권한이 차단되었습니다. 브라우저에서 위치 권한을 허용해주세요.";
+            } else if (error.code === 2) {
+                message = "현재 위치를 확인할 수 없습니다.";
+            } else if (error.code === 3) {
+                message = "위치 요청 시간이 초과되었습니다.";
+            }
+
+            alert(message);
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
 }
 
 // ---------------------------------------------------------
@@ -220,9 +260,11 @@ if (reportForm) {
     reportForm.addEventListener('submit', async (e) => {
         e.preventDefault(); 
         
-        const currentLat = parseFloat(document.getElementById("latitude").value);
-        if (currentLat === INITIAL_LAT) {
-            if (!confirm("지도로 위치를 선택하지 않으셨습니다. 기본 위치로 제출할까요?")) return;
+        const latValue = document.getElementById("latitude").value;
+        const lngValue = document.getElementById("longitude").value;
+
+        if (!latValue || !lngValue) {
+            if (!confirm("위치를 선택하지 않으셨습니다. 기본 위치로 제출할까요?")) return;
         }
 
         const submitBtn = reportForm.querySelector('button[type="submit"]');
