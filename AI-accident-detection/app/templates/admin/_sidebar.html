@@ -45,6 +45,18 @@
           </a>
         </li>
 
+      <!-- 관리자 사이드바에 "실시간 위험" 이라는 탭 구현 -->
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_realtime_alert.realtime_alert_page') }}"
+            class="{% if endpoint.startswith('admin_realtime_alert.') %}active{% endif %} admin-alert-link"
+          >
+            <span>실시간 위험 알림</span>
+            <span id="realtime-alert-badge" class="realtime-alert-badge">0</span>
+          </a>
+        </li>
+      <!-- 관리자 사이드바에 "실시간 위험" 이라는 탭 구현 종료 범위 -->
+
         <li class="admin-nav-item">
           <a
             href="{{ url_for('admin_ai.summary') }}"
