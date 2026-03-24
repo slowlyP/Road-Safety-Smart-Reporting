@@ -23,6 +23,39 @@ def _check_admin():
 
 
 @admin_ai_bp.route("/", methods=["GET"])
+def summary():
+    """
+    AI 요약 대시보드 메인 페이지
+    """
+    check = _check_admin()
+    if check:
+        return check
+
+    period = request.args.get("period", "30d").strip()
+    file_type = request.args.get("file_type", "all").strip()
+
+    data = AdminAIService.get_summary_page_data(
+        period=period,
+        file_type=file_type
+    )
+
+    return render_template(
+        "admin/ai/summary.html",
+        summary=data["summary"],                               # KPI 카드
+        image_label_stats=data["image_label_stats"],           # 이미지 클래스별 통계
+        video_label_stats=data["video_label_stats"],           # 영상 클래스별 통계
+        monthly_label_stats=data["monthly_label_stats"],       # 월별 클래스 통계
+        monthly_result_stats=data["monthly_result_stats"],     # 월별 처리완료/오탐 추이
+        confidence_distribution=data["confidence_distribution"], # 신뢰도 분포
+        model_metrics=data["model_metrics"],                   # 정확도/정밀도/재현율
+        filters={
+            "period": period,
+            "file_type": file_type
+        }
+    )
+
+
+@admin_ai_bp.route("/logs", methods=["GET"])
 def list():
     """
     AI 탐지 로그 목록 페이지
@@ -50,8 +83,7 @@ def list():
         {"value": "box", "label": "박스형"},
         {"value": "bag", "label": "봉투류"},
         {"value": "tire", "label": "타이어"},
-        {"value": "rock", "label": "돌 / 콘크리트"},
-        {"value": "debris", "label": "파편"}
+        {"value": "rock", "label": "낙석"}
     ]
 
     return render_template(
@@ -89,25 +121,4 @@ def detail(detection_id):
         report=data["report"],
         file=data["file"],
         is_false_positive=data["is_false_positive"]
-    )
-
-
-@admin_ai_bp.route("/summary", methods=["GET"])
-def summary():
-    """
-    AI 요약 리포트 페이지
-    """
-    check = _check_admin()
-    if check:
-        return check
-
-    data = AdminAIService.get_summary_page_data()
-
-    return render_template(
-        "admin/ai/summary.html",
-        summary=data["summary"],
-        label_stats=data["label_stats"],
-        daily_trend=data["daily_trend"],
-        confidence_distribution=data["confidence_distribution"],
-        recent_false_positives=data["recent_false_positives"]
     )
