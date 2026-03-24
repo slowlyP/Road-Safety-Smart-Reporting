@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 프로젝트 트리 완성
 현재 프로젝트 진행하기 좋은 상태로 만들어 뒀습니다. <br>
 추가 DB가 필요한 경우 꼭! 말씀해주셔야합니다.
@@ -357,4 +358,6 @@ HTML id/name: snake_case 기준 유지
 JS 변수: camelCase 사용 가능
 예: loginId, messageBox
 ```
+=======
+>>>>>>> origin/feature-ai-detection-kdg
 
