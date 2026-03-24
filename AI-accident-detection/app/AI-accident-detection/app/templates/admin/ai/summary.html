@@ -1,0 +1,281 @@
+{% extends "admin/../layout.html" %}
+
+{% block title %}AI 요약 리포트{% endblock %}
+
+{% block admin_extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_ai.css') }}">
+{% endblock %}
+
+{% block admin_content %}
+
+<section class="admin-panel">
+
+  <div class="admin-page-header">
+    <h1 class="admin-page-title">AI 요약 리포트</h1>
+    <p class="admin-page-desc">
+      AI 탐지 결과의 통계, confidence 분포, 라벨별 탐지 현황, 최근 오탐 사례를 확인할 수 있습니다.
+    </p>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">총 탐지 수</div>
+      <div class="summary-value">{{ summary.total_detections }}</div>
+      <div class="summary-sub">누적 탐지 건수</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-label">평균 신뢰도</div>
+      <div class="summary-value">{{ (summary.avg_confidence * 100) | round(2) }}%</div>
+      <div class="summary-sub">전체 confidence 평균</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-label">오탐 건수</div>
+      <div class="summary-value">{{ summary.false_positives }}</div>
+      <div class="summary-sub">관리자 최종 오탐 판정 기준</div>
+    </div>
+
+    <div class="summary-card danger">
+      <div class="summary-label">오탐률</div>
+      <div class="summary-value">{{ summary.false_positive_rate }}%</div>
+      <div class="summary-sub">전체 탐지 대비 비율</div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3>Confidence 구간별 분포</h3>
+      </div>
+      <canvas id="confidenceChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3>라벨별 탐지 건수</h3>
+      </div>
+      <canvas id="labelChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-grid single">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3>최근 탐지 추이</h3>
+      </div>
+      <canvas id="dailyChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3>최근 오탐 사례</h3>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>신고 제목</th>
+            <th>라벨</th>
+            <th>신뢰도</th>
+            <th>파일</th>
+            <th>탐지 시간</th>
+            <th>상세</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in recent_false_positives %}
+          <tr>
+            <td>{{ item.detection_id }}</td>
+            <td>{{ item.report_title }}</td>
+
+            <td>
+              {% if item.detected_label == 'box' %}
+                박스형
+              {% elif item.detected_label == 'bag' %}
+                봉투류
+              {% elif item.detected_label == 'tire' %}
+                타이어
+              {% elif item.detected_label == 'rock' %}
+                돌 / 콘크리트
+              {% elif item.detected_label == 'debris' %}
+                파편
+              {% else %}
+                {{ item.detected_label }}
+              {% endif %}
+            </td>
+
+            <td>
+              <span class="badge
+                {% if item.confidence >= 0.85 %}badge-high
+                {% elif item.confidence >= 0.5 %}badge-mid
+                {% else %}badge-low
+                {% endif %}">
+                {{ (item.confidence * 100) | round(2) }}%
+              </span>
+            </td>
+
+            <td>
+              {% if item.file_type == '이미지' %}
+                이미지
+              {% elif item.file_type == '영상' %}
+                영상
+              {% else %}
+                -
+              {% endif %}
+            </td>
+
+            <td>{{ item.detected_at }}</td>
+
+            <td>
+              <a href="{{ url_for('admin_ai.detail', detection_id=item.detection_id) }}"
+                 class="detail-btn">
+                보기
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7">오탐 사례가 없습니다.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const confidenceLabels = {{ confidence_distribution.ranges | tojson }};
+  const confidenceCounts = {{ confidence_distribution.counts | tojson }};
+
+  const rawLabelLabels = {{ label_stats.labels | tojson }};
+  const labelCounts = {{ label_stats.counts | tojson }};
+
+  const dailyLabels = {{ daily_trend.dates | tojson }};
+  const dailyCounts = {{ daily_trend.counts | tojson }};
+
+  const labelMap = {
+    box: "박스형",
+    bag: "봉투류",
+    tire: "타이어",
+    rock: "돌 / 콘크리트",
+    debris: "파편"
+  };
+
+  const labelLabels = rawLabelLabels.map(label => labelMap[label] || label);
+
+  const commonLegendStyle = {
+    labels: {
+      color: "#dbe4f3",
+      font: { size: 12 }
+    }
+  };
+
+  const commonScaleStyle = {
+    ticks: { color: "#c7d0e2" },
+    grid: { color: "rgba(255,255,255,0.08)" }
+  };
+
+  new Chart(document.getElementById("confidenceChart"), {
+    type: "bar",
+    data: {
+      labels: confidenceLabels,
+      datasets: [{
+        label: "탐지 건수",
+        data: confidenceCounts,
+        borderWidth: 1,
+        borderRadius: 8,
+        backgroundColor: [
+          "rgba(239, 68, 68, 0.75)",
+          "rgba(245, 158, 11, 0.75)",
+          "rgba(59, 130, 246, 0.75)",
+          "rgba(34, 197, 94, 0.75)"
+        ],
+        borderColor: [
+          "rgba(239, 68, 68, 1)",
+          "rgba(245, 158, 11, 1)",
+          "rgba(59, 130, 246, 1)",
+          "rgba(34, 197, 94, 1)"
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: commonLegendStyle },
+      scales: {
+        x: commonScaleStyle,
+        y: { ...commonScaleStyle, beginAtZero: true }
+      }
+    }
+  });
+
+  new Chart(document.getElementById("labelChart"), {
+    type: "doughnut",
+    data: {
+      labels: labelLabels,
+      datasets: [{
+        label: "탐지 건수",
+        data: labelCounts,
+        borderWidth: 1,
+        backgroundColor: [
+          "rgba(249, 115, 22, 0.78)",
+          "rgba(234, 179, 8, 0.78)",
+          "rgba(239, 68, 68, 0.78)",
+          "rgba(107, 114, 128, 0.78)",
+          "rgba(59, 130, 246, 0.78)"
+        ],
+        borderColor: [
+          "rgba(249, 115, 22, 1)",
+          "rgba(234, 179, 8, 1)",
+          "rgba(239, 68, 68, 1)",
+          "rgba(107, 114, 128, 1)",
+          "rgba(59, 130, 246, 1)"
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: commonLegendStyle }
+    }
+  });
+
+  new Chart(document.getElementById("dailyChart"), {
+    type: "line",
+    data: {
+      labels: dailyLabels,
+      datasets: [{
+        label: "일자별 탐지 수",
+        data: dailyCounts,
+        fill: true,
+        tension: 0.28,
+        borderWidth: 2,
+        borderColor: "rgba(255, 107, 44, 1)",
+        backgroundColor: "rgba(255, 107, 44, 0.15)",
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: "rgba(255, 139, 61, 1)"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: commonLegendStyle },
+      scales: {
+        x: commonScaleStyle,
+        y: { ...commonScaleStyle, beginAtZero: true }
+      }
+    }
+  });
+</script>
+
+{% endblock %}
