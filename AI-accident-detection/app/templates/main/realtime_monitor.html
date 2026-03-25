@@ -84,6 +84,61 @@
             </div>
         </div>
 
+        <!-- 경로 위험 보기 -->
+        <div class="route-risk-panel">
+            <div class="route-risk-header">
+                <h2>경로 위험 보기</h2>
+                <p>
+                    출발지와 도착지를 입력하면, 이동 경로 주변의 위험 지점을 추려서 보여줍니다.
+                    검색창 자동완성 사용이 가장 정확하며, 현재 API 제한 시에는
+                    역명·주소·건물명을 직접 입력해 경로 탐색을 시도할 수 있습니다.
+                </p>
+            </div>
+
+            <div class="route-risk-form">
+                <div class="route-input-group">
+                    <label for="route-origin">출발지</label>
+                    <input
+                        type="text"
+                        id="route-origin"
+                        class="route-input"
+                        placeholder="예: 강남역, 서울역, 서울특별시 중구 세종대로 110"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="route-input-group">
+                    <label for="route-destination">도착지</label>
+                    <input
+                        type="text"
+                        id="route-destination"
+                        class="route-input"
+                        placeholder="예: 잠실역, 인천공항, 판교역"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="route-input-group narrow">
+                    <label for="route-risk-radius">경로 반경</label>
+                    <select id="route-risk-radius" class="route-select">
+                        <option value="0.3">300m</option>
+                        <option value="0.5" selected>500m</option>
+                        <option value="1">1km</option>
+                        <option value="2">2km</option>
+                    </select>
+                </div>
+
+                <div class="route-action-group">
+                    <button type="button" id="find-route-risk-btn" class="route-btn primary">
+                        경로 위험 확인
+                    </button>
+                    <button type="button" id="reset-route-risk-btn" class="route-btn secondary">
+                        경로 초기화
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- 현재 필터 상태 -->
         <div class="monitor-filter-status" id="monitor-filter-status">
             전체 지역 기준으로 전체 위험도를 표시하고 있습니다.
@@ -113,14 +168,17 @@
                     <span class="legend-item">
                         <span class="legend-dot user"></span> 내 위치
                     </span>
+                    <span class="legend-item">
+                        <span class="legend-line route"></span> 경로
+                    </span>
                 </div>
             </div>
 
             <!-- 리스트 패널 -->
             <div class="monitor-list-panel">
                 <div class="monitor-panel-header">
-                    <h2>실시간 위험 리스트</h2>
-                    <p>최근 탐지된 위험 이벤트를 빠르게 확인할 수 있습니다.</p>
+                    <h2 id="risk-list-title">실시간 위험 리스트</h2>
+                    <p id="risk-list-subtitle">최근 탐지된 위험 이벤트를 빠르게 확인할 수 있습니다.</p>
                 </div>
 
                 <div id="realtime-risk-list" class="realtime-risk-list">
