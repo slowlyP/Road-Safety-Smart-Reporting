@@ -16,6 +16,13 @@ class RealtimeMonitorService:
             return default
 
     @staticmethod
+    def _safe_int(value, default=0):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
     def _format_datetime(dt):
         if not dt:
             return "-"
@@ -45,24 +52,29 @@ class RealtimeMonitorService:
         return f"{days}일 전"
 
     @staticmethod
+    def _normalize_file_path(file_path):
+        if not file_path:
+            return ""
+
+        normalized = str(file_path).replace("\\", "/").strip()
+
+        if not normalized.startswith("/"):
+            normalized = f"/{normalized}"
+
+        return normalized
+
+    @staticmethod
     def get_summary_cards():
-        """
-        상단 카드 데이터
-        """
         return RealtimeMonitorRepository.get_summary_data()
 
     @staticmethod
     def get_map_points():
-        """
-        지도 마커용 데이터 가공
-        """
         rows = RealtimeMonitorRepository.get_map_points()
 
         result = []
         seen_report_ids = set()
 
         for row in rows:
-            # detection outer join 으로 report가 중복될 수 있으니 1건만 사용
             if row.report_id in seen_report_ids:
                 continue
             seen_report_ids.add(row.report_id)
@@ -85,9 +97,6 @@ class RealtimeMonitorService:
 
     @staticmethod
     def get_recent_risk_list(limit=20):
-        """
-        우측/하단 리스트용 데이터 가공
-        """
         rows = RealtimeMonitorRepository.get_recent_risk_list(limit=limit)
 
         result = []
@@ -111,3 +120,45 @@ class RealtimeMonitorService:
             })
 
         return result
+
+    @staticmethod
+    def get_report_detail(report_id):
+        row = RealtimeMonitorRepository.get_report_detail(report_id)
+
+        if not row:
+            return None
+
+        detail = {
+            "report_id": getattr(row, "report_id", None),
+            "title": getattr(row, "title", None) or "제목 없음",
+            "content": getattr(row, "content", None) or "상세 내용 없음",
+            "location_text": getattr(row, "location_text", None) or "위치 정보 없음",
+            "latitude": RealtimeMonitorService._safe_float(getattr(row, "latitude", None)),
+            "longitude": RealtimeMonitorService._safe_float(getattr(row, "longitude", None)),
+            "risk_level": getattr(row, "risk_level", None) or "주의",
+            "status": getattr(row, "status", None) or "-",
+            "report_type": getattr(row, "report_type", None) or "-",
+            "created_at": RealtimeMonitorService._format_datetime(getattr(row, "created_at", None)),
+            "time_ago": RealtimeMonitorService._time_ago(getattr(row, "created_at", None)),
+
+            "detection_id": getattr(row, "detection_id", None),
+            "detected_label": getattr(row, "detected_label", None) or "미확인",
+            "confidence": round(
+                RealtimeMonitorService._safe_float(getattr(row, "confidence", None)),
+                2
+            ),
+            "bbox": {
+                "x1": RealtimeMonitorService._safe_int(getattr(row, "bbox_x1", None)),
+                "y1": RealtimeMonitorService._safe_int(getattr(row, "bbox_y1", None)),
+                "x2": RealtimeMonitorService._safe_int(getattr(row, "bbox_x2", None)),
+                "y2": RealtimeMonitorService._safe_int(getattr(row, "bbox_y2", None)),
+            },
+
+            "file_id": getattr(row, "file_id", None),
+            "file_path": RealtimeMonitorService._normalize_file_path(getattr(row, "file_path", "")),
+            "file_type": getattr(row, "file_type", None) or "-",
+            "original_name": getattr(row, "original_name", None) or "-",
+            "stored_name": getattr(row, "stored_name", None) or "-",
+        }
+
+        return detail

@@ -22,7 +22,6 @@
 <section class="monitor-section">
     <div class="monitor-container">
 
-        <!-- 상단 요약 카드 -->
         <div class="monitor-summary-grid">
             <div class="monitor-summary-card">
                 <div class="summary-card-label">현재 위험 구간 수</div>
@@ -57,9 +56,7 @@
             </div>
         </div>
 
-        <!-- 메인 영역 -->
         <div class="monitor-main-grid">
-            <!-- 지도 패널 -->
             <div class="monitor-map-panel">
                 <div class="monitor-panel-header">
                     <h2>지도 기반 위험 현황</h2>
@@ -81,7 +78,6 @@
                 </div>
             </div>
 
-            <!-- 리스트 패널 -->
             <div class="monitor-list-panel">
                 <div class="monitor-panel-header">
                     <h2>실시간 위험 리스트</h2>
@@ -90,7 +86,7 @@
 
                 <div id="realtime-risk-list" class="realtime-risk-list">
                     {% for item in risk_list %}
-                    <div class="risk-list-item risk-{{ item.risk_level }}">
+                    <div class="risk-list-item risk-{{ item.risk_level }}" data-report-id="{{ item.report_id }}">
                         <div class="risk-list-top">
                             <span class="risk-badge risk-{{ item.risk_level }}">{{ item.risk_level }}</span>
                             <span class="risk-time">{{ item.time_ago }}</span>
@@ -115,11 +111,86 @@
     </div>
 </section>
 
+<!-- 상세 보기 모달 -->
+<div id="risk-detail-modal" class="risk-detail-modal hidden">
+    <div class="risk-detail-backdrop" id="risk-detail-backdrop"></div>
+
+    <div class="risk-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="risk-detail-title">
+        <button type="button" class="risk-detail-close" id="risk-detail-close" aria-label="상세정보 닫기">×</button>
+
+        <div class="risk-detail-grid">
+            <div class="risk-detail-media-panel">
+                <div class="risk-detail-media-wrap">
+                    <img
+                        id="risk-detail-image"
+                        class="risk-detail-image"
+                        src=""
+                        alt="탐지 상세 이미지"
+                    >
+                    <div id="risk-detail-image-empty" class="risk-detail-image-empty">
+                        표시할 대표 이미지가 없습니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="risk-detail-info-panel">
+                <div class="risk-detail-header">
+                    <span id="risk-detail-badge" class="risk-detail-badge">주의</span>
+                    <span id="risk-detail-timeago" class="risk-detail-timeago">-</span>
+                </div>
+
+                <h2 id="risk-detail-title" class="risk-detail-title">상세 제목</h2>
+                <p id="risk-detail-location" class="risk-detail-location">위치 정보</p>
+
+                <div class="risk-detail-desc" id="risk-detail-content">
+                    상세 내용 없음
+                </div>
+
+                <div class="risk-detail-info-list">
+                    <div class="risk-detail-info-item">
+                        <span class="label">신고 ID</span>
+                        <span class="value" id="risk-detail-report-id">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">탐지 라벨</span>
+                        <span class="value" id="risk-detail-detected-label">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">신뢰도</span>
+                        <span class="value" id="risk-detail-confidence">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">처리 상태</span>
+                        <span class="value" id="risk-detail-status">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">신고 방식</span>
+                        <span class="value" id="risk-detail-report-type">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">발생 시간</span>
+                        <span class="value" id="risk-detail-created-at">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">파일 유형</span>
+                        <span class="value" id="risk-detail-file-type">-</span>
+                    </div>
+                    <div class="risk-detail-info-item">
+                        <span class="label">원본 파일명</span>
+                        <span class="value" id="risk-detail-original-name">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     window.REALTIME_MONITOR_CONFIG = {
         summaryApiUrl: "{{ url_for('realtime_monitor.get_summary') }}",
         mapPointsApiUrl: "{{ url_for('realtime_monitor.get_map_points') }}",
-        riskListApiUrl: "{{ url_for('realtime_monitor.get_risk_list') }}"
+        riskListApiUrl: "{{ url_for('realtime_monitor.get_risk_list') }}",
+        detailApiBaseUrl: "/realtime-monitor/detail"
     };
 </script>
 {% endblock %}

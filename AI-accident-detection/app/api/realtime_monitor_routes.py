@@ -11,10 +11,6 @@ realtime_monitor_bp = Blueprint(
 
 @realtime_monitor_bp.route("", methods=["GET"])
 def realtime_monitor_page():
-    """
-    탐지 현황 메인 페이지
-    - 프론트 상단 메뉴에서 진입하는 독립 페이지
-    """
     google_maps_api_key = current_app.config.get("GOOGLE_MAPS_API_KEY", "")
     summary = RealtimeMonitorService.get_summary_cards()
     risk_list = RealtimeMonitorService.get_recent_risk_list(limit=20)
@@ -29,9 +25,6 @@ def realtime_monitor_page():
 
 @realtime_monitor_bp.route("/summary", methods=["GET"])
 def get_summary():
-    """
-    상단 요약 카드 데이터 API
-    """
     data = RealtimeMonitorService.get_summary_cards()
 
     return jsonify({
@@ -42,9 +35,6 @@ def get_summary():
 
 @realtime_monitor_bp.route("/map-points", methods=["GET"])
 def get_map_points():
-    """
-    지도 마커 데이터 API
-    """
     items = RealtimeMonitorService.get_map_points()
 
     return jsonify({
@@ -55,12 +45,25 @@ def get_map_points():
 
 @realtime_monitor_bp.route("/risk-list", methods=["GET"])
 def get_risk_list():
-    """
-    실시간 위험 리스트 데이터 API
-    """
     items = RealtimeMonitorService.get_recent_risk_list(limit=20)
 
     return jsonify({
         "success": True,
         "items": items
+    }), 200
+
+
+@realtime_monitor_bp.route("/detail/<int:report_id>", methods=["GET"])
+def get_report_detail(report_id):
+    detail = RealtimeMonitorService.get_report_detail(report_id)
+
+    if not detail:
+        return jsonify({
+            "success": False,
+            "message": "해당 사고 상세 정보를 찾을 수 없습니다."
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "data": detail
     }), 200

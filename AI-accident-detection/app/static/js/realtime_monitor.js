@@ -13,6 +13,12 @@ async function fetchJson(url) {
     return await response.json();
 }
 
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value ?? "";
+    return div.innerHTML;
+}
+
 function getMarkerIconByRiskLevel(riskLevel) {
     switch (riskLevel) {
         case "긴급":
@@ -23,12 +29,6 @@ function getMarkerIconByRiskLevel(riskLevel) {
         default:
             return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
     }
-}
-
-function escapeHtml(value) {
-    const div = document.createElement("div");
-    div.textContent = value ?? "";
-    return div.innerHTML;
 }
 
 function clearMarkers() {
@@ -45,6 +45,11 @@ function buildInfoWindowContent(item) {
             <div class="map-info-row"><strong>접수 시간:</strong> ${escapeHtml(item.created_at || "-")}</div>
             <div class="map-info-row"><strong>처리 상태:</strong> ${escapeHtml(item.status || "-")}</div>
             <div class="map-info-row"><strong>신뢰도:</strong> ${escapeHtml(String(item.confidence ?? "-"))}</div>
+            <div class="map-info-row" style="margin-top: 10px;">
+                <button type="button" class="map-detail-btn" data-report-id="${item.report_id}">
+                    상세보기
+                </button>
+            </div>
         </div>
     `;
 }
@@ -90,6 +95,13 @@ async function loadMapPoints() {
                 anchor: marker,
                 map: realtimeMonitorMap
             });
+
+            google.maps.event.addListenerOnce(realtimeMonitorInfoWindow, "domready", () => {
+                const btn = document.querySelector(".map-detail-btn");
+                if (btn) {
+                    btn.addEventListener("click", () => openRiskDetailModal(item.report_id));
+                }
+            });
         });
 
         realtimeMonitorMarkers.push(marker);
@@ -100,7 +112,6 @@ async function loadMapPoints() {
     if (validCount > 0) {
         realtimeMonitorMap.fitBounds(bounds);
 
-        // 지나치게 확대되는 것 방지
         const listener = google.maps.event.addListener(realtimeMonitorMap, "idle", function () {
             if (realtimeMonitorMap.getZoom() > 15) {
                 realtimeMonitorMap.setZoom(15);
@@ -136,6 +147,7 @@ async function loadSummaryCards() {
 function createRiskListItem(item) {
     const wrapper = document.createElement("div");
     wrapper.className = `risk-list-item risk-${item.risk_level || "주의"}`;
+    wrapper.dataset.reportId = item.report_id || "";
 
     wrapper.innerHTML = `
         <div class="risk-list-top">
@@ -155,6 +167,12 @@ function createRiskListItem(item) {
             <span>신뢰도: ${escapeHtml(String(item.confidence ?? "-"))}</span>
         </div>
     `;
+
+    wrapper.addEventListener("click", () => {
+        if (item.report_id) {
+            openRiskDetailModal(item.report_id);
+        }
+    });
 
     return wrapper;
 }
@@ -200,7 +218,7 @@ async function refreshRealtimeMonitorData() {
             loadRiskList()
         ]);
     } catch (error) {
-        console.error("실시간 위험 현황 데이터 갱신 실패:", error);
+        console.error("탐지 현황 데이터 갱신 실패:", error);
     }
 }
 
@@ -222,8 +240,152 @@ function initRealtimeMonitorMap() {
 
     refreshRealtimeMonitorData();
 
-    // 15초마다 새로고침
     setInterval(refreshRealtimeMonitorData, 15000);
 }
+
+/* =========================
+   상세 모달
+========================= */
+
+function getRiskDetailElements() {
+    return {
+        modal: document.getElementById("risk-detail-modal"),
+        backdrop: document.getElementById("risk-detail-backdrop"),
+        closeBtn: document.getElementById("risk-detail-close"),
+
+        badge: document.getElementById("risk-detail-badge"),
+        timeago: document.getElementById("risk-detail-timeago"),
+        title: document.getElementById("risk-detail-title"),
+        location: document.getElementById("risk-detail-location"),
+        content: document.getElementById("risk-detail-content"),
+
+        reportId: document.getElementById("risk-detail-report-id"),
+        detectedLabel: document.getElementById("risk-detail-detected-label"),
+        confidence: document.getElementById("risk-detail-confidence"),
+        status: document.getElementById("risk-detail-status"),
+        reportType: document.getElementById("risk-detail-report-type"),
+        createdAt: document.getElementById("risk-detail-created-at"),
+        fileType: document.getElementById("risk-detail-file-type"),
+        originalName: document.getElementById("risk-detail-original-name"),
+
+        image: document.getElementById("risk-detail-image"),
+        imageEmpty: document.getElementById("risk-detail-image-empty"),
+    };
+}
+
+function openModal() {
+    const { modal } = getRiskDetailElements();
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+    document.body.classList.add("modal-open");
+}
+
+function closeModal() {
+    const { modal } = getRiskDetailElements();
+    if (!modal) return;
+
+    modal.classList.add("hidden");
+    document.body.classList.remove("modal-open");
+}
+
+function setBadgeStyle(element, riskLevel) {
+    if (!element) return;
+
+    element.className = "risk-detail-badge";
+    if (riskLevel === "긴급") {
+        element.classList.add("emergency");
+    } else if (riskLevel === "위험") {
+        element.classList.add("danger");
+    } else {
+        element.classList.add("warning");
+    }
+
+    element.textContent = riskLevel || "주의";
+}
+
+function renderRiskDetail(detail) {
+    const els = getRiskDetailElements();
+
+    setBadgeStyle(els.badge, detail.risk_level);
+    if (els.timeago) els.timeago.textContent = detail.time_ago || "-";
+    if (els.title) els.title.textContent = detail.title || "제목 없음";
+    if (els.location) els.location.textContent = detail.location_text || "위치 정보 없음";
+    if (els.content) els.content.textContent = detail.content || "상세 내용 없음";
+
+    if (els.reportId) els.reportId.textContent = detail.report_id ?? "-";
+    if (els.detectedLabel) els.detectedLabel.textContent = detail.detected_label || "-";
+    if (els.confidence) els.confidence.textContent = detail.confidence ?? "-";
+    if (els.status) els.status.textContent = detail.status || "-";
+    if (els.reportType) els.reportType.textContent = detail.report_type || "-";
+    if (els.createdAt) els.createdAt.textContent = detail.created_at || "-";
+    if (els.fileType) els.fileType.textContent = detail.file_type || "-";
+    if (els.originalName) els.originalName.textContent = detail.original_name || "-";
+
+    if (els.image && els.imageEmpty) {
+        if (detail.file_path && detail.file_type === "이미지") {
+            els.image.src = detail.file_path;
+            els.image.style.display = "block";
+            els.imageEmpty.style.display = "none";
+        } else {
+            els.image.src = "";
+            els.image.style.display = "none";
+            els.imageEmpty.style.display = "flex";
+        }
+    }
+}
+
+async function openRiskDetailModal(reportId) {
+    if (!window.REALTIME_MONITOR_CONFIG || !reportId) {
+        return;
+    }
+
+    try {
+        const url = `${window.REALTIME_MONITOR_CONFIG.detailApiBaseUrl}/${reportId}`;
+        const result = await fetchJson(url);
+
+        if (!result.success) {
+            alert(result.message || "상세 정보를 불러오지 못했습니다.");
+            return;
+        }
+
+        renderRiskDetail(result.data);
+        openModal();
+    } catch (error) {
+        console.error("상세 정보 조회 실패:", error);
+        alert("상세 정보를 불러오는 중 오류가 발생했습니다.");
+    }
+}
+
+function bindRiskDetailModalEvents() {
+    const { backdrop, closeBtn, modal } = getRiskDetailElements();
+
+    if (backdrop) {
+        backdrop.addEventListener("click", closeModal);
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", closeModal);
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal && !modal.classList.contains("hidden")) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll(".risk-list-item[data-report-id]").forEach((item) => {
+        item.addEventListener("click", () => {
+            const reportId = item.dataset.reportId;
+            if (reportId) {
+                openRiskDetailModal(reportId);
+            }
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    bindRiskDetailModalEvents();
+});
 
 window.initRealtimeMonitorMap = initRealtimeMonitorMap;

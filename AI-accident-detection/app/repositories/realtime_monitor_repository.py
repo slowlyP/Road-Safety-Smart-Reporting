@@ -3,17 +3,12 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, case, distinct
 
 from app.extensions import db
-from app.models import Report, Detection
+from app.models import Report, Detection, ReportFile
 
 
 class RealtimeMonitorRepository:
     """
     탐지 현황(독립 페이지) 전용 Repository
-
-    역할
-    - 상단 요약 카드용 통계 조회
-    - 지도 마커용 데이터 조회
-    - 실시간 위험 리스트 조회
     """
 
     TARGET_RISK_LEVELS = ["주의", "위험", "긴급"]
@@ -21,12 +16,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def count_current_risk_zones():
-        """
-        현재 위험 구간 수
-        - 접수/확인중 상태
-        - 주의/위험/긴급 위험도
-        - location_text 기준 중복 제거
-        """
         return (
             db.session.query(func.count(distinct(Report.location_text)))
             .filter(Report.deleted_at.is_(None))
@@ -39,9 +28,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def count_today_reports():
-        """
-        오늘 접수 건수
-        """
         today = datetime.now().date()
 
         return (
@@ -53,9 +39,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def count_emergency_last_24h():
-        """
-        최근 24시간 긴급 건수
-        """
         since_time = datetime.now() - timedelta(hours=24)
 
         return (
@@ -68,11 +51,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def count_hotspots(days=7, min_count=2):
-        """
-        사고 다발 구간 수
-        - 최근 days일 동안
-        - 같은 location_text 에서 min_count 이상 발생
-        """
         since_time = datetime.now() - timedelta(days=days)
 
         rows = (
@@ -93,9 +71,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def get_summary_data():
-        """
-        상단 카드용 종합 데이터
-        """
         return {
             "current_risk_zones": RealtimeMonitorRepository.count_current_risk_zones(),
             "today_reports": RealtimeMonitorRepository.count_today_reports(),
@@ -105,15 +80,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def get_map_points(limit=300):
-        """
-        지도 마커용 데이터
-
-        기준
-        - deleted_at 없는 데이터
-        - 좌표 존재
-        - 현재 위험 상태(접수/확인중)
-        - 위험도: 주의/위험/긴급
-        """
         rows = (
             db.session.query(
                 Report.id.label("report_id"),
@@ -142,13 +108,6 @@ class RealtimeMonitorRepository:
 
     @staticmethod
     def get_recent_risk_list(limit=20):
-        """
-        실시간 위험 리스트
-
-        정렬
-        - 긴급 > 위험 > 주의
-        - 같은 위험도 내 최신순
-        """
         risk_order = case(
             (Report.risk_level == "긴급", 3),
             (Report.risk_level == "위험", 2),
@@ -176,3 +135,77 @@ class RealtimeMonitorRepository:
         )
 
         return rows
+
+    @staticmethod
+    def get_report_detail(report_id):
+        """
+        report_id 기준 상세 조회
+        - Report 기본 정보
+        - Detection 대표 1건
+        - ReportFile 대표 1건
+        """
+        row = (
+            db.session.query(
+                Report.id.label("report_id"),
+                Report.title.label("title"),
+                Report.content.label("content"),
+                Report.location_text.label("location_text"),
+                Report.latitude.label("latitude"),
+                Report.longitude.label("longitude"),
+                Report.risk_level.label("risk_level"),
+                Report.status.label("status"),
+                Report.report_type.label("report_type"),
+                Report.created_at.label("created_at"),
+
+                Detection.id.label("detection_id"),
+                Detection.detected_label.label("detected_label"),
+                Detection.confidence.label("confidence"),
+                Detection.bbox_x1.label("bbox_x1"),
+                Detection.bbox_y1.label("bbox_y1"),
+                Detection.bbox_x2.label("bbox_x2"),
+                Detection.bbox_y2.label("bbox_y2"),
+
+                ReportFile.id.label("file_id"),
+                ReportFile.file_path.label("file_path"),
+                ReportFile.file_type.label("file_type"),
+                ReportFile.original_name.label("original_name"),
+                ReportFile.stored_name.label("stored_name"),
+            )
+            .outerjoin(Detection, Detection.report_id == Report.id)
+            .outerjoin(ReportFile, ReportFile.id == Detection.file_id)
+            .filter(Report.deleted_at.is_(None))
+            .filter(Report.id == report_id)
+            .order_by(Detection.created_at.desc(), ReportFile.uploaded_at.desc())
+            .first()
+        )
+
+        if row:
+            return row
+
+        row_without_detection = (
+            db.session.query(
+                Report.id.label("report_id"),
+                Report.title.label("title"),
+                Report.content.label("content"),
+                Report.location_text.label("location_text"),
+                Report.latitude.label("latitude"),
+                Report.longitude.label("longitude"),
+                Report.risk_level.label("risk_level"),
+                Report.status.label("status"),
+                Report.report_type.label("report_type"),
+                Report.created_at.label("created_at"),
+
+                ReportFile.id.label("file_id"),
+                ReportFile.file_path.label("file_path"),
+                ReportFile.file_type.label("file_type"),
+                ReportFile.original_name.label("original_name"),
+                ReportFile.stored_name.label("stored_name"),
+            )
+            .outerjoin(ReportFile, ReportFile.report_id == Report.id)
+            .filter(Report.deleted_at.is_(None))
+            .filter(Report.id == report_id)
+            .order_by(ReportFile.uploaded_at.desc())
+            .first()
+        )
+
+        return row_without_detection
