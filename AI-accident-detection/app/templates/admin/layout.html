@@ -3,18 +3,22 @@
 {% block title %}관리자 페이지{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_common.css') }}">
-{% block admin_extra_css %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_common.css') }}">
+  {% block admin_extra_css %}{% endblock %}
 {% endblock %}
 
 {% block content %}
-<div class="admin-page">
+  <div class="admin-page">
 
     {% include "admin/_sidebar.html" %}
 
     <main class="admin-content">
-        {% block admin_content %}{% endblock %}
+      {% block admin_content %}{% endblock %}
     </main>
 
-</div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  {% block admin_extra_js %}{% endblock %}
 {% endblock %}
