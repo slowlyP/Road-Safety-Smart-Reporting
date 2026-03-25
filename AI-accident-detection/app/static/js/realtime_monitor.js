@@ -2,6 +2,15 @@ let realtimeMonitorMap = null;
 let realtimeMonitorInfoWindow = null;
 let realtimeMonitorMarkers = [];
 
+// 원본 데이터 저장
+let ALL_MAP_POINTS = [];
+let ALL_RISK_LIST = [];
+
+// 현재 필터 상태
+let CURRENT_RISK_FILTER = "all";
+let CURRENT_USER_POSITION = null;
+let CURRENT_RADIUS_KM = 3;
+
 async function fetchJson(url) {
     const response = await fetch(url, {
         method: "GET",
@@ -32,7 +41,7 @@ function getMarkerIconByRiskLevel(riskLevel) {
 }
 
 function clearMarkers() {
-    realtimeMonitorMarkers.forEach(marker => marker.setMap(null));
+    realtimeMonitorMarkers.forEach((marker) => marker.setMap(null));
     realtimeMonitorMarkers = [];
 }
 
@@ -52,96 +61,6 @@ function buildInfoWindowContent(item) {
             </div>
         </div>
     `;
-}
-
-async function loadMapPoints() {
-    if (!window.REALTIME_MONITOR_CONFIG || !realtimeMonitorMap) {
-        return;
-    }
-
-    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.mapPointsApiUrl);
-    if (!result.success) {
-        return;
-    }
-
-    const items = result.items || [];
-    clearMarkers();
-
-    const bounds = new google.maps.LatLngBounds();
-    let validCount = 0;
-
-    items.forEach(item => {
-        const lat = Number(item.latitude);
-        const lng = Number(item.longitude);
-
-        if (!lat || !lng) {
-            return;
-        }
-
-        const marker = new google.maps.Marker({
-            position: { lat, lng },
-            map: realtimeMonitorMap,
-            title: item.location_text || "위치 정보 없음",
-            icon: getMarkerIconByRiskLevel(item.risk_level)
-        });
-
-        marker.addListener("click", () => {
-            if (!realtimeMonitorInfoWindow) {
-                realtimeMonitorInfoWindow = new google.maps.InfoWindow();
-            }
-
-            realtimeMonitorInfoWindow.setContent(buildInfoWindowContent(item));
-            realtimeMonitorInfoWindow.open({
-                anchor: marker,
-                map: realtimeMonitorMap
-            });
-
-            google.maps.event.addListenerOnce(realtimeMonitorInfoWindow, "domready", () => {
-                const btn = document.querySelector(".map-detail-btn");
-                if (btn) {
-                    btn.addEventListener("click", () => openRiskDetailModal(item.report_id));
-                }
-            });
-        });
-
-        realtimeMonitorMarkers.push(marker);
-        bounds.extend({ lat, lng });
-        validCount += 1;
-    });
-
-    if (validCount > 0) {
-        realtimeMonitorMap.fitBounds(bounds);
-
-        const listener = google.maps.event.addListener(realtimeMonitorMap, "idle", function () {
-            if (realtimeMonitorMap.getZoom() > 15) {
-                realtimeMonitorMap.setZoom(15);
-            }
-            google.maps.event.removeListener(listener);
-        });
-    }
-}
-
-async function loadSummaryCards() {
-    if (!window.REALTIME_MONITOR_CONFIG) {
-        return;
-    }
-
-    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.summaryApiUrl);
-    if (!result.success) {
-        return;
-    }
-
-    const data = result.data || {};
-
-    const currentRiskZones = document.getElementById("summary-current-risk-zones");
-    const todayReports = document.getElementById("summary-today-reports");
-    const emergencyLast24h = document.getElementById("summary-emergency-last-24h");
-    const hotspots = document.getElementById("summary-hotspots");
-
-    if (currentRiskZones) currentRiskZones.textContent = data.current_risk_zones ?? 0;
-    if (todayReports) todayReports.textContent = data.today_reports ?? 0;
-    if (emergencyLast24h) emergencyLast24h.textContent = data.emergency_last_24h ?? 0;
-    if (hotspots) hotspots.textContent = data.hotspots ?? 0;
 }
 
 function createRiskListItem(item) {
@@ -177,37 +96,219 @@ function createRiskListItem(item) {
     return wrapper;
 }
 
-async function loadRiskList() {
-    if (!window.REALTIME_MONITOR_CONFIG) {
-        return;
+function haversineDistanceKm(lat1, lng1, lat2, lng2) {
+    const toRad = (deg) => deg * (Math.PI / 180);
+    const R = 6371;
+
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function matchesRiskFilter(item) {
+    if (CURRENT_RISK_FILTER === "all") {
+        return true;
+    }
+    return item.risk_level === CURRENT_RISK_FILTER;
+}
+
+function matchesNearbyFilter(item) {
+    if (!CURRENT_USER_POSITION) {
+        return true;
     }
 
-    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.riskListApiUrl);
-    if (!result.success) {
-        return;
+    const lat = Number(item.latitude);
+    const lng = Number(item.longitude);
+
+    if (!lat || !lng) {
+        return false;
     }
 
-    const items = result.items || [];
+    const distance = haversineDistanceKm(
+        CURRENT_USER_POSITION.lat,
+        CURRENT_USER_POSITION.lng,
+        lat,
+        lng
+    );
+
+    return distance <= CURRENT_RADIUS_KM;
+}
+
+function getFilteredMapPoints() {
+    return ALL_MAP_POINTS.filter((item) => {
+        return matchesRiskFilter(item) && matchesNearbyFilter(item);
+    });
+}
+
+function getFilteredRiskList() {
+    return ALL_RISK_LIST.filter((item) => {
+        if (!matchesRiskFilter(item)) {
+            return false;
+        }
+
+        if (CURRENT_USER_POSITION) {
+            const matched = ALL_MAP_POINTS.find((p) => p.report_id === item.report_id);
+            if (!matched) return false;
+            return matchesNearbyFilter(matched);
+        }
+
+        return true;
+    });
+}
+
+function updateFilterStatus() {
+    const statusEl = document.getElementById("monitor-filter-status");
+    if (!statusEl) return;
+
+    const riskText = CURRENT_RISK_FILTER === "all" ? "전체 위험도" : `${CURRENT_RISK_FILTER}만`;
+    const nearbyText = CURRENT_USER_POSITION
+        ? `내 주변 반경 ${CURRENT_RADIUS_KM}km 기준으로`
+        : "전체 지역 기준으로";
+
+    statusEl.textContent = `${nearbyText} ${riskText} 표시하고 있습니다.`;
+}
+
+function renderMapPoints(points) {
+    if (!realtimeMonitorMap) return;
+
+    clearMarkers();
+
+    const bounds = new google.maps.LatLngBounds();
+    let validCount = 0;
+
+    points.forEach((item) => {
+        const lat = Number(item.latitude);
+        const lng = Number(item.longitude);
+
+        if (!lat || !lng) return;
+
+        const marker = new google.maps.Marker({
+            position: { lat, lng },
+            map: realtimeMonitorMap,
+            title: item.location_text || "위치 정보 없음",
+            icon: getMarkerIconByRiskLevel(item.risk_level)
+        });
+
+        marker.addListener("click", () => {
+            if (!realtimeMonitorInfoWindow) {
+                realtimeMonitorInfoWindow = new google.maps.InfoWindow();
+            }
+
+            realtimeMonitorInfoWindow.setContent(buildInfoWindowContent(item));
+            realtimeMonitorInfoWindow.open({
+                anchor: marker,
+                map: realtimeMonitorMap
+            });
+
+            google.maps.event.addListenerOnce(realtimeMonitorInfoWindow, "domready", () => {
+                const btn = document.querySelector(".map-detail-btn");
+                if (btn) {
+                    btn.addEventListener("click", () => openRiskDetailModal(item.report_id));
+                }
+            });
+        });
+
+        realtimeMonitorMarkers.push(marker);
+        bounds.extend({ lat, lng });
+        validCount += 1;
+    });
+
+    if (CURRENT_USER_POSITION) {
+        const userMarker = new google.maps.Marker({
+            position: CURRENT_USER_POSITION,
+            map: realtimeMonitorMap,
+            title: "내 현재 위치",
+            icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+        });
+
+        realtimeMonitorMarkers.push(userMarker);
+        bounds.extend(CURRENT_USER_POSITION);
+        validCount += 1;
+    }
+
+    if (validCount > 0) {
+        realtimeMonitorMap.fitBounds(bounds);
+
+        const listener = google.maps.event.addListener(realtimeMonitorMap, "idle", function () {
+            if (realtimeMonitorMap.getZoom() > 15) {
+                realtimeMonitorMap.setZoom(15);
+            }
+            google.maps.event.removeListener(listener);
+        });
+    }
+}
+
+function renderRiskList(items) {
     const listContainer = document.getElementById("realtime-risk-list");
-
-    if (!listContainer) {
-        return;
-    }
+    if (!listContainer) return;
 
     listContainer.innerHTML = "";
 
     if (items.length === 0) {
         listContainer.innerHTML = `
             <div class="risk-empty-state">
-                현재 표시할 위험 데이터가 없습니다.
+                현재 조건에 맞는 위험 데이터가 없습니다.
             </div>
         `;
         return;
     }
 
-    items.forEach(item => {
+    items.forEach((item) => {
         listContainer.appendChild(createRiskListItem(item));
     });
+}
+
+function applyFiltersAndRender() {
+    const filteredMapPoints = getFilteredMapPoints();
+    const filteredRiskList = getFilteredRiskList();
+
+    renderMapPoints(filteredMapPoints);
+    renderRiskList(filteredRiskList);
+    updateFilterStatus();
+}
+
+async function loadMapPoints() {
+    if (!window.REALTIME_MONITOR_CONFIG) return;
+
+    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.mapPointsApiUrl);
+    if (!result.success) return;
+
+    ALL_MAP_POINTS = result.items || [];
+}
+
+async function loadSummaryCards() {
+    if (!window.REALTIME_MONITOR_CONFIG) return;
+
+    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.summaryApiUrl);
+    if (!result.success) return;
+
+    const data = result.data || {};
+
+    const currentRiskZones = document.getElementById("summary-current-risk-zones");
+    const todayReports = document.getElementById("summary-today-reports");
+    const emergencyLast24h = document.getElementById("summary-emergency-last-24h");
+    const hotspots = document.getElementById("summary-hotspots");
+
+    if (currentRiskZones) currentRiskZones.textContent = data.current_risk_zones ?? 0;
+    if (todayReports) todayReports.textContent = data.today_reports ?? 0;
+    if (emergencyLast24h) emergencyLast24h.textContent = data.emergency_last_24h ?? 0;
+    if (hotspots) hotspots.textContent = data.hotspots ?? 0;
+}
+
+async function loadRiskList() {
+    if (!window.REALTIME_MONITOR_CONFIG) return;
+
+    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.riskListApiUrl);
+    if (!result.success) return;
+
+    ALL_RISK_LIST = result.items || [];
 }
 
 async function refreshRealtimeMonitorData() {
@@ -217,16 +318,81 @@ async function refreshRealtimeMonitorData() {
             loadMapPoints(),
             loadRiskList()
         ]);
+
+        applyFiltersAndRender();
     } catch (error) {
         console.error("탐지 현황 데이터 갱신 실패:", error);
     }
 }
 
+function bindRiskFilterButtons() {
+    const buttons = document.querySelectorAll(".filter-btn[data-risk-filter]");
+    buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            buttons.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            CURRENT_RISK_FILTER = btn.dataset.riskFilter || "all";
+            applyFiltersAndRender();
+        });
+    });
+}
+
+function bindRadiusSelect() {
+    const radiusSelect = document.getElementById("nearby-radius-select");
+    if (!radiusSelect) return;
+
+    radiusSelect.addEventListener("change", () => {
+        CURRENT_RADIUS_KM = Number(radiusSelect.value || 3);
+        if (CURRENT_USER_POSITION) {
+            applyFiltersAndRender();
+        }
+    });
+}
+
+function bindNearbyButtons() {
+    const findBtn = document.getElementById("find-nearby-risk-btn");
+    const resetBtn = document.getElementById("reset-nearby-risk-btn");
+
+    if (findBtn) {
+        findBtn.addEventListener("click", () => {
+            if (!navigator.geolocation) {
+                alert("이 브라우저에서는 위치 기능을 지원하지 않습니다.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    CURRENT_USER_POSITION = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    applyFiltersAndRender();
+                },
+                (error) => {
+                    console.error("현재 위치 조회 실패:", error);
+                    alert("현재 위치를 가져오지 못했습니다. 위치 권한을 확인해주세요.");
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+            CURRENT_USER_POSITION = null;
+            applyFiltersAndRender();
+        });
+    }
+}
+
 function initRealtimeMonitorMap() {
     const mapElement = document.getElementById("realtime-monitor-map");
-    if (!mapElement) {
-        return;
-    }
+    if (!mapElement) return;
 
     realtimeMonitorMap = new google.maps.Map(mapElement, {
         center: { lat: 37.5665, lng: 126.9780 },
@@ -239,7 +405,6 @@ function initRealtimeMonitorMap() {
     realtimeMonitorInfoWindow = new google.maps.InfoWindow();
 
     refreshRealtimeMonitorData();
-
     setInterval(refreshRealtimeMonitorData, 15000);
 }
 
@@ -336,9 +501,7 @@ function renderRiskDetail(detail) {
 }
 
 async function openRiskDetailModal(reportId) {
-    if (!window.REALTIME_MONITOR_CONFIG || !reportId) {
-        return;
-    }
+    if (!window.REALTIME_MONITOR_CONFIG || !reportId) return;
 
     try {
         const url = `${window.REALTIME_MONITOR_CONFIG.detailApiBaseUrl}/${reportId}`;
@@ -385,6 +548,9 @@ function bindRiskDetailModalEvents() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    bindRiskFilterButtons();
+    bindRadiusSelect();
+    bindNearbyButtons();
     bindRiskDetailModalEvents();
 });
 

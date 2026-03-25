@@ -1,21 +1,87 @@
-.realtime-monitor-page {
+.monitor-hero {
+    position: relative;
+    min-height: 360px;
     display: flex;
-    flex-direction: column;
-    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 20px 80px;
+    background:
+        linear-gradient(rgba(5, 12, 28, 0.72), rgba(5, 12, 28, 0.82)),
+        url("/static/images/main-hero.jpg") center center / cover no-repeat;
+    overflow: hidden;
+}
+
+.monitor-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at center, rgba(255, 120, 40, 0.10), transparent 45%);
+    pointer-events: none;
+}
+
+.monitor-hero-content {
+    position: relative;
+    max-width: 1100px;
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+}
+
+.monitor-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    color: #ff8c42;
+    background: rgba(255, 140, 66, 0.12);
+    border: 1px solid rgba(255, 140, 66, 0.28);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.monitor-hero-content h1 {
+    margin: 0 0 18px;
+    font-size: 58px;
+    line-height: 1.15;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.monitor-hero-content p {
+    margin: 0 auto;
+    max-width: 760px;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #d7e0ee;
+}
+
+.monitor-section {
+    background: linear-gradient(180deg, #071121 0%, #0b1528 100%);
+    padding: 40px 20px 80px;
+}
+
+.monitor-container {
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .monitor-summary-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    gap: 18px;
+    margin-bottom: 28px;
 }
 
 .monitor-summary-card {
-    background: #121a2b;
+    background: rgba(17, 26, 43, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(6px);
 }
 
 .monitor-summary-card.emergency {
@@ -33,10 +99,11 @@
 }
 
 .summary-card-value {
-    font-size: 34px;
+    font-size: 38px;
     font-weight: 800;
     color: #ffffff;
     margin-bottom: 8px;
+    line-height: 1;
 }
 
 .summary-card-sub {
@@ -44,49 +111,127 @@
     color: #7e90b3;
 }
 
+.monitor-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.monitor-filter-left,
+.monitor-filter-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn,
+.location-btn,
+.location-reset-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn {
+    background: rgba(255,255,255,0.06);
+    color: #dce6f4;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.filter-btn.active {
+    background: linear-gradient(90deg, #ff7a45, #ff9c3f);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(255, 122, 69, 0.25);
+}
+
+.location-btn {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: #fff;
+}
+
+.location-reset-btn {
+    background: rgba(255,255,255,0.06);
+    color: #dce6f4;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.radius-select {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: #111b2f;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.monitor-filter-status {
+    margin-bottom: 18px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #b9c7dd;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
 .monitor-main-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 20px;
+    gap: 22px;
 }
 
 .monitor-map-panel,
 .monitor-list-panel {
-    background: #121a2b;
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+    background: rgba(17, 26, 43, 0.92);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .monitor-panel-header {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .monitor-panel-header h2 {
     margin: 0 0 8px;
-    font-size: 24px;
+    font-size: 28px;
     color: #ffffff;
+    font-weight: 800;
 }
 
 .monitor-panel-header p {
     margin: 0;
-    font-size: 13px;
+    font-size: 14px;
     color: #9fb0d0;
+    line-height: 1.6;
 }
 
 .realtime-monitor-map {
     width: 100%;
-    height: 560px;
-    border-radius: 14px;
+    height: 620px;
+    border-radius: 16px;
     overflow: hidden;
     background: #0d1320;
 }
 
 .monitor-map-legend {
     display: flex;
+    flex-wrap: wrap;
     gap: 18px;
     align-items: center;
-    margin-top: 14px;
+    margin-top: 16px;
     color: #d5dded;
     font-size: 13px;
 }
@@ -116,20 +261,31 @@
     background: #ffd43b;
 }
 
+.legend-dot.user {
+    background: #3b82f6;
+}
+
 .realtime-risk-list {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    max-height: 650px;
+    max-height: 715px;
     overflow-y: auto;
     padding-right: 4px;
 }
 
 .risk-list-item {
     background: #0f1626;
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 16px;
     border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    cursor: pointer;
+}
+
+.risk-list-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 .risk-list-item.risk-긴급 {
@@ -155,8 +311,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 56px;
-    height: 28px;
+    min-width: 58px;
+    height: 30px;
     padding: 0 10px;
     border-radius: 999px;
     font-size: 12px;
@@ -204,7 +360,7 @@
 }
 
 .risk-empty-state {
-    padding: 30px 20px;
+    padding: 36px 20px;
     border-radius: 14px;
     background: #0f1626;
     color: #9fb0d0;
@@ -213,9 +369,10 @@
 }
 
 .map-info-window {
-    min-width: 220px;
-    line-height: 1.5;
+    min-width: 230px;
+    line-height: 1.6;
     font-size: 13px;
+    color: #222;
 }
 
 .map-info-title {
@@ -228,36 +385,6 @@
     margin-bottom: 6px;
 }
 
-@media (max-width: 1280px) {
-    .monitor-summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .monitor-main-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .realtime-monitor-map {
-        height: 460px;
-    }
-}
-
-@media (max-width: 768px) {
-    .monitor-summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .realtime-monitor-map {
-        height: 360px;
-    }
-}
-
-/* 리스트 클릭 가능하게 */
-.risk-list-item {
-    cursor: pointer;
-}
-
-/* 지도 info window 버튼 */
 .map-detail-btn {
     border: none;
     background: linear-gradient(90deg, #ff7a45, #ff9c3f);
@@ -455,6 +582,24 @@ body.modal-open {
     word-break: break-word;
 }
 
+@media (max-width: 1280px) {
+    .monitor-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .monitor-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .realtime-monitor-map {
+        height: 500px;
+    }
+
+    .realtime-risk-list {
+        max-height: unset;
+    }
+}
+
 @media (max-width: 980px) {
     .risk-detail-grid {
         grid-template-columns: 1fr;
@@ -465,6 +610,33 @@ body.modal-open {
     }
 
     .risk-detail-title {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .monitor-hero {
+        min-height: 300px;
+        padding: 100px 20px 60px;
+    }
+
+    .monitor-hero-content h1 {
+        font-size: 38px;
+    }
+
+    .monitor-hero-content p {
+        font-size: 16px;
+    }
+
+    .monitor-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .realtime-monitor-map {
+        height: 360px;
+    }
+
+    .monitor-panel-header h2 {
         font-size: 22px;
     }
 }
