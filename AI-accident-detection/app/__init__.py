@@ -85,6 +85,7 @@ def create_app():
     from app.api.admin_ai_routes import admin_ai_bp
     from app.api.report_list_routes import report_list_bp
     from app.api.admin_realtime_alert_routes import admin_realtime_alert_bp
+    from app.api.realtime_monitor_routes import realtime_monitor_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -95,6 +96,7 @@ def create_app():
     app.register_blueprint(admin_ai_bp)
     app.register_blueprint(report_list_bp)
     app.register_blueprint(admin_realtime_alert_bp)
+    app.register_blueprint(realtime_monitor_bp)
 
     # -----------------------------
     # 소켓 이벤트 등록

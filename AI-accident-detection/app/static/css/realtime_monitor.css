@@ -1,0 +1,253 @@
+.realtime-monitor-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.monitor-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.monitor-summary-card {
+    background: #121a2b;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.monitor-summary-card.emergency {
+    border-left: 5px solid #ff4d4f;
+}
+
+.monitor-summary-card.hotspot {
+    border-left: 5px solid #ff9f1a;
+}
+
+.summary-card-label {
+    font-size: 14px;
+    color: #9fb0d0;
+    margin-bottom: 10px;
+}
+
+.summary-card-value {
+    font-size: 34px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.summary-card-sub {
+    font-size: 12px;
+    color: #7e90b3;
+}
+
+.monitor-main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.monitor-map-panel,
+.monitor-list-panel {
+    background: #121a2b;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.monitor-panel-header {
+    margin-bottom: 16px;
+}
+
+.monitor-panel-header h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.monitor-panel-header p {
+    margin: 0;
+    font-size: 13px;
+    color: #9fb0d0;
+}
+
+.realtime-monitor-map {
+    width: 100%;
+    height: 560px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0d1320;
+}
+
+.monitor-map-legend {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    margin-top: 14px;
+    color: #d5dded;
+    font-size: 13px;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot.emergency {
+    background: #ff4d4f;
+}
+
+.legend-dot.danger {
+    background: #ff8c1a;
+}
+
+.legend-dot.warning {
+    background: #ffd43b;
+}
+
+.realtime-risk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 650px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.risk-list-item {
+    background: #0f1626;
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.risk-list-item.risk-긴급 {
+    border-left: 5px solid #ff4d4f;
+}
+
+.risk-list-item.risk-위험 {
+    border-left: 5px solid #ff8c1a;
+}
+
+.risk-list-item.risk-주의 {
+    border-left: 5px solid #ffd43b;
+}
+
+.risk-list-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.risk-badge.risk-긴급 {
+    background: #ff4d4f;
+}
+
+.risk-badge.risk-위험 {
+    background: #ff8c1a;
+}
+
+.risk-badge.risk-주의 {
+    background: #d4a900;
+}
+
+.risk-time {
+    font-size: 12px;
+    color: #9fb0d0;
+}
+
+.risk-location {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.risk-meta,
+.risk-extra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    font-size: 13px;
+    color: #b8c4dc;
+}
+
+.risk-extra {
+    margin-top: 8px;
+    color: #8ea1c7;
+}
+
+.risk-empty-state {
+    padding: 30px 20px;
+    border-radius: 14px;
+    background: #0f1626;
+    color: #9fb0d0;
+    text-align: center;
+    font-size: 14px;
+}
+
+.map-info-window {
+    min-width: 220px;
+    line-height: 1.5;
+    font-size: 13px;
+}
+
+.map-info-title {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.map-info-row {
+    margin-bottom: 6px;
+}
+
+@media (max-width: 1280px) {
+    .monitor-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .monitor-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .realtime-monitor-map {
+        height: 460px;
+    }
+}
+
+@media (max-width: 768px) {
+    .monitor-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .realtime-monitor-map {
+        height: 360px;
+    }
+}
