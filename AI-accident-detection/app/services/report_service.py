@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models import Report, ReportFile, Detection, ReportStatusLog
 from app.services.yolo_service import detect_image, detect_video
 
-# [추가] 실시간 위험 알림 서비스 import
+# [기존 추가] 실시간 위험 알림 서비스 import
 from app.services.realtime_alert_service import RealtimeAlertService
 
 
@@ -34,8 +34,42 @@ class ReportService:
             if not upload_file or upload_file.filename == '':
                 raise ValueError("첨부된 파일이 없습니다.")
 
-            original_name = secure_filename(upload_file.filename)
-            ext = os.path.splitext(original_name)[1].lower()
+            # -------------------------------------------------------
+            # [수정] 원본 파일명은 그대로 보관
+            # - 기존: original_name = secure_filename(upload_file.filename)
+            # - 문제점:
+            #   1) original_name 컬럼에 원본명이 아니라 정제된 이름이 저장됨
+            #   2) 한글/특수문자 파일명에서 secure_filename 결과가 비정상적일 수 있음
+            # -------------------------------------------------------
+            raw_original_name = upload_file.filename
+
+            # -------------------------------------------------------
+            # [추가] 안전한 파일명 보조값 생성
+            # - 실제 저장 파일명은 uuid로 만들기 때문에 직접 저장용은 아니고
+            #   확장자 fallback 확인용으로 사용
+            # -------------------------------------------------------
+            safe_original_name = secure_filename(raw_original_name)
+
+            # -------------------------------------------------------
+            # [수정] 확장자는 원본 파일명 기준으로 먼저 추출
+            # - 기존: ext = os.path.splitext(original_name)[1].lower()
+            # - 이제는 원본 기준으로 먼저 뽑고,
+            #   혹시 없으면 safe_original_name 기준으로 한 번 더 보정
+            # -------------------------------------------------------
+            ext = os.path.splitext(raw_original_name)[1].lower()
+
+            # -------------------------------------------------------
+            # [추가] 확장자 fallback 처리
+            # - 원본 파일명에서 확장자가 제대로 안 잡힐 경우 보정
+            # -------------------------------------------------------
+            if not ext:
+                ext = os.path.splitext(safe_original_name)[1].lower()
+
+            # -------------------------------------------------------
+            # [추가] 그래도 확장자가 없으면 명확하게 예외 처리
+            # -------------------------------------------------------
+            if not ext:
+                raise ValueError("파일 확장자를 확인할 수 없습니다.")
 
             if ext not in ReportService.ALLOWED_EXTENSIONS:
                 raise ValueError(f"허용되지 않는 파일 형식입니다: {ext}")
@@ -79,6 +113,7 @@ class ReportService:
 
             # -------------------------------------------------------
             # 기존 파일 저장 로직
+            # - 실제 저장 파일명은 uuid 기반으로 안전하게 생성
             # -------------------------------------------------------
             stored_name = f"{uuid.uuid4().hex}{ext}"
             upload_folder = os.path.join('app', 'static', 'uploads')
@@ -111,9 +146,17 @@ class ReportService:
                     else:
                         cap.release()
 
+            # -------------------------------------------------------
+            # [수정] DB에는 원본 파일명(raw_original_name) 저장
+            # - 기존: original_name=original_name (secure_filename 결과값)
+            # - 수정: original_name=raw_original_name
+            # - 의미:
+            #   1) 사용자가 올린 실제 파일명은 original_name에 보관
+            #   2) 서버 저장용 안전 파일명은 stored_name으로 별도 관리
+            # -------------------------------------------------------
             new_file = ReportFile(
                 report_id=new_report.id,
-                original_name=original_name,
+                original_name=raw_original_name,
                 stored_name=stored_name,
                 file_path=f"static/uploads/{stored_name}",
                 file_type=inferred_type,
@@ -125,7 +168,7 @@ class ReportService:
             db.session.flush()
 
             # -------------------------------------------------------
-            # [추가] commit 이후 소켓 emit에 사용할 결과 저장 변수
+            # [기존 추가] commit 이후 소켓 emit에 사용할 결과 저장 변수
             # - 여기서는 alert row 생성 + payload 준비만 하고
             # - 실제 emit은 commit 성공 후에 수행
             # -------------------------------------------------------
@@ -162,7 +205,7 @@ class ReportService:
                 ]
 
                 # -------------------------------------------------------
-                # [추가] 대표 detection 저장 변수
+                # [기존 추가] 대표 detection 저장 변수
                 # - 여러 detection 중 가장 위험도가 높은 detection 1개를
                 #   실시간 알림 대표 detection으로 사용
                 # -------------------------------------------------------
@@ -184,9 +227,8 @@ class ReportService:
                             highest_score = base_score
 
                         # -------------------------------------------------------
-                        # [수정] Detection 객체를 변수로 만들어 저장
-                        # - 기존엔 바로 add 했을 가능성이 높음
-                        # - 이제 detection.id가 필요해서 변수화 + flush 필요
+                        # [기존 수정] Detection 객체를 변수로 만들어 저장
+                        # - detection.id 확보가 필요해서 변수화 + flush 처리
                         # -------------------------------------------------------
                         new_detection = Detection(
                             report_id=new_report.id,
@@ -207,12 +249,12 @@ class ReportService:
                         db.session.add(new_detection)
 
                         # -------------------------------------------------------
-                        # [추가] detection.id 확보용 flush
+                        # [기존 추가] detection.id 확보용 flush
                         # -------------------------------------------------------
                         db.session.flush()
 
                         # -------------------------------------------------------
-                        # [추가] 대표 detection 선정
+                        # [기존 추가] 대표 detection 선정
                         # -------------------------------------------------------
                         if base_score > representative_detection_score:
                             representative_detection_score = base_score
@@ -222,7 +264,7 @@ class ReportService:
                     memo = f"AI 분석 결과 {new_report.risk_level} 등급 낙하물 탐지"
 
                     # -------------------------------------------------------
-                    # [추가] 위험 / 긴급일 때만 실시간 알림 생성 준비
+                    # [기존 추가] 위험 / 긴급일 때만 실시간 알림 생성 준비
                     # - alert row 생성 + payload 준비
                     # - emit은 아직 하지 않음
                     # -------------------------------------------------------
@@ -264,7 +306,7 @@ class ReportService:
             db.session.commit()
 
             # -------------------------------------------------------
-            # [추가] commit 성공 후 emit
+            # [기존 추가] commit 성공 후 emit
             # - DB 저장 성공 이후에만 관리자 화면으로 실시간 알림 전송
             # -------------------------------------------------------
             if realtime_alert_result:
