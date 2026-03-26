@@ -1,0 +1,434 @@
+/* ===== 전체 배경 ===== */
+body {
+  background: #f6f6f8 !important;
+}
+
+/* ===== 페이지 ===== */
+.edit-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 22px;
+}
+
+/* ===== 헤더 ===== */
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.edit-page-title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.edit-page-subtitle {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #8b8f97;
+}
+
+/* ===== 뒤로가기 버튼 ===== */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 96px;
+  height: 42px;
+  padding: 0 18px;
+
+  border-radius: 12px;
+  background: #181a38;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ===== 카드 ===== */
+.edit-card {
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 18px;
+
+  padding: 28px;
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  transition: 0.2s ease;
+}
+
+.edit-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== 폼 ===== */
+.edit-form {
+  width: 100%;
+}
+
+.edit-form-group {
+  margin-bottom: 22px;
+}
+
+.edit-label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* ===== 입력창 ===== */
+.edit-input,
+.edit-textarea {
+  width: 100%;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+  font-size: 14px;
+  color: #111827;
+
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.edit-input {
+  height: 46px;
+  padding: 0 14px;
+}
+
+.edit-textarea {
+  min-height: 160px;
+  padding: 14px;
+
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.edit-input::placeholder,
+.edit-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.edit-input:focus,
+.edit-textarea:focus {
+  border-color: #f97316;
+  outline: none;
+
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* ===== 기존 첨부파일 ===== */
+.edit-file-preview {
+  width: 100%;
+  min-height: 260px;
+
+  margin-top: 10px;
+  padding: 20px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #f9fafb;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+
+.edit-file-preview-item {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-image-file {
+  max-width: 100%;
+  max-height: 420px;
+
+  border-radius: 12px;
+  object-fit: contain;
+
+  display: block;
+}
+
+.edit-video-preview {
+  width: 100%;
+  max-width: 720px;
+  max-height: 420px;
+
+  border-radius: 12px;
+  background: #000;
+
+  display: block;
+}
+
+.edit-file-empty-text {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+
+  text-align: center;
+}
+
+.edit-file-link {
+  display: inline-block;
+
+  padding: 10px 16px;
+
+  border-radius: 10px;
+  background: #181a38;
+  color: #fff;
+
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.edit-file-link:hover {
+  background: #111327;
+}
+
+/* ===== 파일 업로드 ===== */
+.edit-file-input {
+  width: 100%;
+  padding: 12px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+  font-size: 14px;
+  color: #374151;
+
+  box-sizing: border-box;
+}
+
+.edit-file-input:focus {
+  border-color: #f97316;
+  outline: none;
+
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.edit-file-help {
+  margin-top: 8px;
+
+  font-size: 13px;
+  color: #9aa1ac;
+
+  line-height: 1.5;
+}
+
+/* ===== 버튼 ===== */
+.edit-form-buttons {
+  margin-top: 30px;
+
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  flex-wrap: wrap;
+}
+
+/* 저장 버튼 */
+.save-btn {
+  min-width: 110px;
+  height: 44px;
+  padding: 0 18px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: #f97316;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+  background: #ea580c;
+  transform: translateY(-1px);
+}
+
+/* 취소 버튼 */
+.cancel-btn {
+  min-width: 110px;
+  height: 44px;
+  padding: 0 18px;
+
+  border-radius: 10px;
+  background: #e5e7eb;
+  color: #374151;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  text-decoration: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #d1d5db;
+  transform: translateY(-1px);
+}
+
+/* ===== 모바일 ===== */
+@media (max-width: 768px) {
+  .edit-file-preview {
+    min-height: 200px;
+    padding: 12px;
+  }
+
+  .edit-image-file,
+  .edit-video-preview {
+    max-height: 260px;
+  }
+
+  .edit-form-buttons {
+    justify-content: stretch;
+  }
+
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}
+
+/* ===== 파일 업로드 커스텀 ===== */
+
+.edit-file-upload-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.edit-file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 120px;
+  height: 44px;
+  padding: 0 16px;
+
+  border-radius: 10px;
+  background: #181a38;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.edit-file-upload-btn:hover {
+  background: #111327;
+  transform: translateY(-1px);
+}
+
+.edit-file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* 기존 input 숨기기 */
+.edit-file-input {
+  position: absolute;
+  left: -9999px;
+}
+
+/* ===== AI 분석 표시 박스 ===== */
+.edit-readonly-box {
+  height: 46px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* ===== 토스트 알림 ===== */
+.toast-message {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  min-width: 260px;
+  max-width: 360px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  animation: toastFadeIn 0.3s ease, toastFadeOut 0.3s ease 2.7s forwards;
+}
+
+.toast-success {
+  background: #16a34a;
+}
+
+.toast-error {
+  background: #dc2626;
+}
+
+.toast-info {
+  background: #2563eb;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}

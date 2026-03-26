@@ -1,0 +1,295 @@
+/* =========================
+   사이드바 알림 메뉴 / 배지
+   ========================= */
+.admin-alert-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.realtime-alert-badge {
+    display: none;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: #ff4d4f;
+    box-shadow: 0 0 12px rgba(255, 77, 79, 0.35);
+    flex-shrink: 0;
+}
+
+/* =========================
+   토스트 컨테이너
+   ========================= */
+.realtime-alert-toast-container {
+    position: fixed;
+    top: 90px;
+    right: 24px;
+    z-index: 9999;
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.realtime-alert-toast-container .realtime-alert-toast {
+    pointer-events: auto;
+}
+
+/* =========================
+   토스트 공통
+   ========================= */
+.realtime-alert-toast {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #151c31;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    color: #fff;
+}
+
+.realtime-alert-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.realtime-alert-toast.danger {
+    border-left: 6px solid #ff7a45;
+}
+
+.realtime-alert-toast.emergency {
+    border-left: 6px solid #ff4d4f;
+    box-shadow: 0 12px 28px rgba(255, 77, 79, 0.28);
+}
+
+.realtime-alert-toast-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.realtime-alert-toast-close {
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.realtime-alert-toast-body {
+    padding: 14px;
+}
+
+.realtime-alert-toast-message {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    word-break: keep-all;
+}
+
+.realtime-alert-toast-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: #bfc9dc;
+    margin-bottom: 10px;
+}
+
+.realtime-alert-toast-actions {
+    margin-top: 4px;
+}
+
+.realtime-alert-toast-link {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #ff7a45, #ff9c3f);
+}
+
+/* =========================
+   실시간 알림 페이지 헤더
+   ========================= */
+.realtime-alert-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.realtime-alert-page-title h2 {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.realtime-alert-page-title p {
+    margin: 0;
+    color: #bfc9dc;
+    font-size: 14px;
+}
+
+/* =========================
+   툴바
+   ========================= */
+.realtime-alert-toolbar {
+    display: flex;
+    gap: 10px;
+}
+
+.realtime-alert-toolbar button {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(90deg, #ff7a45, #ff9c3f);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.realtime-alert-toolbar button:hover {
+    transform: translateY(-1px);
+}
+
+.realtime-alert-toolbar button:active {
+    transform: translateY(0);
+    opacity: 0.9;
+}
+
+/* =========================
+   테이블 영역
+   ========================= */
+.realtime-alert-table-wrap {
+    background: #121930;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    overflow-x: auto;
+}
+
+.realtime-alert-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+    min-width: 900px;
+}
+
+.realtime-alert-table thead th {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #bfc9dc;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.realtime-alert-table tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.realtime-alert-table tbody tr.unread {
+    background: rgba(255, 122, 69, 0.08);
+}
+
+.realtime-alert-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* =========================
+   등급 배지
+   ========================= */
+.alert-level-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.alert-level-badge.danger {
+    background: #ff7a45;
+}
+
+.alert-level-badge.emergency {
+    background: #ff4d4f;
+}
+
+/* =========================
+   버튼
+   ========================= */
+.mark-read-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: #3b82f6;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.mark-read-btn:hover {
+    transform: translateY(-1px);
+}
+
+.mark-read-btn:active {
+    transform: translateY(0);
+}
+
+.mark-read-btn:disabled {
+    background: #64748b;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* =========================
+   반응형
+   ========================= */
+@media (max-width: 768px) {
+    .realtime-alert-toast-container {
+        top: 80px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .realtime-alert-page-title h2 {
+        font-size: 24px;
+    }
+
+    .realtime-alert-table-wrap {
+        padding: 12px;
+    }
+}
