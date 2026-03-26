@@ -12,17 +12,25 @@ class RealtimeMonitorRepository:
     """
 
     TARGET_RISK_LEVELS = ["주의", "위험", "긴급"]
-    ACTIVE_STATUSES = ["접수", "확인중"]
+
+    # 발표/시연용으로 처리완료까지 지도와 리스트에 유지
+    MAP_VISIBLE_STATUSES = ["접수", "확인중", "처리완료"]
+
+    # 기본 조회 기간
+    DEFAULT_VISIBLE_DAYS = 180
 
     @staticmethod
-    def count_current_risk_zones():
+    def count_current_risk_zones(days=DEFAULT_VISIBLE_DAYS):
+        since_time = datetime.now() - timedelta(days=days)
+
         return (
             db.session.query(func.count(distinct(Report.location_text)))
             .filter(Report.deleted_at.is_(None))
-            .filter(Report.status.in_(RealtimeMonitorRepository.ACTIVE_STATUSES))
+            .filter(Report.status.in_(RealtimeMonitorRepository.MAP_VISIBLE_STATUSES))
             .filter(Report.risk_level.in_(RealtimeMonitorRepository.TARGET_RISK_LEVELS))
             .filter(Report.location_text.isnot(None))
             .filter(Report.location_text != "")
+            .filter(Report.created_at >= since_time)
             .scalar()
         ) or 0
 
@@ -70,16 +78,18 @@ class RealtimeMonitorRepository:
         return len(rows)
 
     @staticmethod
-    def get_summary_data():
+    def get_summary_data(days=DEFAULT_VISIBLE_DAYS):
         return {
-            "current_risk_zones": RealtimeMonitorRepository.count_current_risk_zones(),
+            "current_risk_zones": RealtimeMonitorRepository.count_current_risk_zones(days=days),
             "today_reports": RealtimeMonitorRepository.count_today_reports(),
             "emergency_last_24h": RealtimeMonitorRepository.count_emergency_last_24h(),
-            "hotspots": RealtimeMonitorRepository.count_hotspots(days=7, min_count=2)
+            "hotspots": RealtimeMonitorRepository.count_hotspots(days=min(days, 180), min_count=2)
         }
 
     @staticmethod
-    def get_map_points(limit=300):
+    def get_map_points(limit=300, days=DEFAULT_VISIBLE_DAYS):
+        since_time = datetime.now() - timedelta(days=days)
+
         rows = (
             db.session.query(
                 Report.id.label("report_id"),
@@ -95,10 +105,11 @@ class RealtimeMonitorRepository:
             )
             .outerjoin(Detection, Detection.report_id == Report.id)
             .filter(Report.deleted_at.is_(None))
-            .filter(Report.status.in_(RealtimeMonitorRepository.ACTIVE_STATUSES))
+            .filter(Report.status.in_(RealtimeMonitorRepository.MAP_VISIBLE_STATUSES))
             .filter(Report.risk_level.in_(RealtimeMonitorRepository.TARGET_RISK_LEVELS))
             .filter(Report.latitude.isnot(None))
             .filter(Report.longitude.isnot(None))
+            .filter(Report.created_at >= since_time)
             .order_by(Report.created_at.desc())
             .limit(limit)
             .all()
@@ -107,7 +118,9 @@ class RealtimeMonitorRepository:
         return rows
 
     @staticmethod
-    def get_recent_risk_list(limit=20):
+    def get_recent_risk_list(limit=20, days=DEFAULT_VISIBLE_DAYS):
+        since_time = datetime.now() - timedelta(days=days)
+
         risk_order = case(
             (Report.risk_level == "긴급", 3),
             (Report.risk_level == "위험", 2),
@@ -128,7 +141,9 @@ class RealtimeMonitorRepository:
             )
             .outerjoin(Detection, Detection.report_id == Report.id)
             .filter(Report.deleted_at.is_(None))
+            .filter(Report.status.in_(RealtimeMonitorRepository.MAP_VISIBLE_STATUSES))
             .filter(Report.risk_level.in_(RealtimeMonitorRepository.TARGET_RISK_LEVELS))
+            .filter(Report.created_at >= since_time)
             .order_by(risk_order.desc(), Report.created_at.desc())
             .limit(limit)
             .all()
