@@ -73,4 +73,34 @@
 <script src="{{ url_for('static', filename='js/report.js') }}"></script>
 {# 하드코딩된 키 대신 서버에서 넘겨준 google_maps_api_key 변수를 사용합니다 #}
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap"></script>
+
+<div id="loadingModal" class="loading-modal-overlay">
+    <div class="loading-modal-content">
+        <div style="position: relative; z-index: 1;">
+            <h3>
+                <i class="fa-solid fa-satellite-dish pulse-icon"></i>
+                AI ANALYSIS
+            </h3>
+            
+            <p id="loadingStatus" class="desc" style="color: #FF6B00; font-weight: bold; margin-bottom: 25px; min-height: 1.2em;">
+                도로 위 위험 요소를 분석 중입니다...
+            </p>
+            
+            <div class="car-track">
+                <div id="gaugeBar" class="car-gauge-bar"></div>
+                
+                <span id="trashIcon" class="trash-item" style="left: 50%;">
+                    <img id="randomObstacle" src="" style="width: 35px; height: 35px; display: none;">
+                </span>
+                
+                <div id="carIcon" class="car-moving-icon">
+                    <img src="{{ url_for('static', filename='images/truck.png') }}" width="50">
+                </div>
+            </div>
+            
+            <p id="progressText">0%</p>
+            <p class="completed-label">COMPLETED</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
