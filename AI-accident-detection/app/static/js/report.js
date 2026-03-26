@@ -252,7 +252,7 @@ function resetPreview() {
 }
 
 // ---------------------------------------------------------
-// 7. 신고 제출 로직
+// 7. 신고 제출 로직 (트럭 주행 + 랜덤 장애물 )
 // ---------------------------------------------------------
 const reportForm = document.getElementById('reportForm');
 
@@ -260,48 +260,99 @@ if (reportForm) {
     reportForm.addEventListener('submit', async (e) => {
         e.preventDefault(); 
         
-        const latValue = document.getElementById("latitude").value;
-        const lngValue = document.getElementById("longitude").value;
+        const modal = document.getElementById('loadingModal');
+        const gaugeBar = document.getElementById('gaugeBar');
+        const carIcon = document.getElementById('carIcon');
+        const progressText = document.getElementById('progressText');
+        const trashIcon = document.getElementById('trashIcon');
+        const statusText = document.getElementById('loadingStatus'); 
+        const obstacleImg = trashIcon ? trashIcon.querySelector('img') : null;
 
-        if (!latValue || !lngValue) {
-            if (!confirm("위치를 선택하지 않으셨습니다. 기본 위치로 제출할까요?")) return;
+        // 1. 문구 배열
+        const loadingPhrases = [
+            "탐지 레이더 가동 중...",
+            "도로 위 타이어 조각 찾는 중...",
+            "낙석 위험 지형 분석 중...",
+            "쓰레기 봉투 위치 파악 완료!",
+            "AI가 먼지를 털어내고 있습니다...",
+            "분석 결과 보고서 작성 중...",
+            "깨끗한 도로를 시뮬레이션 중...",
+            "거의 다 왔습니다! 엔진 예열 중..."
+        ];
+
+        // 2. 랜덤 장애물 설정
+        const obstacles = ['trash.png', 'tire.png', 'rock.png'];
+        const randomIndex = Math.floor(Math.random() * obstacles.length);
+        const selectedImg = obstacles[randomIndex];
+        
+        if (obstacleImg) {
+            obstacleImg.src = '/static/images/' + selectedImg;
+            obstacleImg.style.display = 'block';
+            obstacleImg.style.zIndex = '9999';
+            if (trashIcon) trashIcon.classList.remove('hidden'); 
         }
 
-        const submitBtn = reportForm.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true; 
-            submitBtn.innerText = '전송 및 AI 분석 중...'; 
-            submitBtn.style.opacity = '0.6';
-        }
+        if (modal) modal.style.display = 'flex';
 
+        // 3. 애니메이션 변수 설정 (에러 해결 핵심 위치)
+        let progress = 0; 
+
+        // UI 업데이트 내부 함수 (리스너 안에서 정의)
+        const updateLoadingUI = (val) => {
+            const currentVal = Math.floor(val);
+            if (gaugeBar) gaugeBar.style.width = currentVal + '%';
+            if (carIcon) carIcon.style.left = `calc(${currentVal}% - 15px)`;
+            if (progressText) progressText.innerText = currentVal + '%';
+
+            if (currentVal >= 50) {
+                if (trashIcon && !trashIcon.classList.contains('hidden')) {
+                    trashIcon.classList.add('hidden');
+                }
+            }
+        };
+
+        const animationInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.floor(Math.random() * 3) + 1;
+                
+                if (Math.floor(progress) % 15 === 0) { 
+                    const phraseIndex = Math.floor(Math.random() * loadingPhrases.length);
+                    if (statusText) statusText.innerText = loadingPhrases[phraseIndex];
+                }
+            } else if (progress < 98) {
+                progress += 0.3;
+                if (statusText) statusText.innerText = "마무리 작업 중...";
+            }
+            updateLoadingUI(progress);
+        }, 200);
+
+        // 4. 서버 전송 로직
         const formData = new FormData(reportForm);
-
         try {
             const response = await fetch(reportForm.action, {
                 method: 'POST',
                 body: formData
             });
 
-            const result = await response.json();
-
             if (response.ok) {
-                alert('신고가 성공적으로 접수되었습니다!');
-                window.location.href = '/'; 
+                clearInterval(animationInterval);
+                updateLoadingUI(100);
+                if (statusText) statusText.innerText = "분석 완료!";
+                
+                setTimeout(() => {
+                    alert('신고가 성공적으로 접수되었습니다!');
+                    window.location.href = '/reports/my-page';
+                }, 500);
             } else {
-                alert(result.message || result.error || '전송 중 오류가 발생했습니다.');
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = '신고 제출하기';
-                    submitBtn.style.opacity = '1';
-                }
+                if (modal) modal.style.display = 'none';
+                clearInterval(animationInterval);
+                const result = await response.json();
+                alert(result.message || '전송 오류');
             }
         } catch (error) {
-            alert('서버와 통신하는 중 오류가 발생했습니다.');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerText = '신고 제출하기';
-                submitBtn.style.opacity = '1';
-            }
+            if (modal) modal.style.display = 'none';
+            clearInterval(animationInterval);
+            alert('통신 오류');
         }
     });
 }
