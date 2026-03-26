@@ -92,12 +92,20 @@ def update_report(report_id):                                             # 🔹
             new_file=new_file,
             delete_file=delete_file
         )
-        if result:
-            flash("신고가 수정되었습니다.", "success")
-            return redirect(url_for("report_list.my_report_detail_page", report_id=report_id))
+        # ReportService.update_my_report()는 (success: bool, message: str) 튜플을 반환합니다.
+        if isinstance(result, tuple) and len(result) >= 1:
+            success = bool(result[0])
+            message = result[1] if len(result) >= 2 else ""
         else:
-            flash("분석 이력이 있는 첨부파일은 수정할 수 없습니다.", "error")
-            return redirect(url_for("report_list.edit_report_page", report_id=report_id))
+            success = bool(result)
+            message = ""
+
+        if success:
+            flash(message or "신고가 수정되었습니다.", "success")
+            return redirect(url_for("report_list.my_report_detail_page", report_id=report_id))
+
+        flash(message or "수정 중 오류가 발생했습니다.", "error")
+        return redirect(url_for("report_list.edit_report_page", report_id=report_id))
 
     except Exception as e:
         print("수정 오류:", e)
