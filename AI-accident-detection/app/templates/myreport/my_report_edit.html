@@ -108,12 +108,7 @@
           ></div>
 
           <!-- 기존 파일 삭제 버튼 -->
-          <button
-            type="button"
-            id="delete-existing-file-btn"
-            class="delete-file-btn"
-            {% if report.has_detection %}disabled{% endif %}
-          >
+          <button type="button" id="delete-existing-file-btn" class="delete-file-btn">
             기존 파일 삭제
           </button>
           {% else %}
@@ -125,44 +120,25 @@
         </div>
       </div>
 
-      <!-- 새 파일 업로드 영역 -->
       <div class="edit-form-group">
         <label class="edit-label">새 이미지 / 영상 업로드</label>
-
+      
         <div class="edit-file-upload-wrap">
-          <!-- 파일 선택 버튼 -->
-          <label for="new_file"
-                 class="edit-file-upload-btn {% if report.has_detection %}disabled{% endif %}"
-          >
+          <label for="new_file" class="edit-file-upload-btn">
             📎 파일 선택
           </label>
-
-          <!-- 선택 파일명 표시 -->
+      
           <span id="edit-file-name" class="edit-file-name">
             선택된 파일 없음
           </span>
-
-          <!-- 새 파일 입력 -->
-          <input
-            type="file"
-            id="new_file"
-            name="new_file"
-            class="edit-file-input"
-            accept="image/*,video/*"
-            {% if report.has_detection %}disabled{% endif %}
-          >
+      
+          <input type="file" id="new_file" name="new_file" class="edit-file-input"
+                 accept="image/*,video/*">
         </div>
-
-        <!-- 수정 가능 여부 안내 -->
-        {% if report.has_detection %}
-        <p class="edit-file-help" style="color: #dc2626; font-weight: 700;">
-          분석 이력이 있는 첨부파일은 수정할 수 없습니다.
-        </p>
-        {% else %}
+      
         <p class="edit-file-help">
-          새 파일을 선택하면 기존 첨부파일 대신 교체됩니다.
+          새 파일을 선택하면 기존 첨부파일 대신 교체되며, AI 재분석이 진행됩니다.
         </p>
-        {% endif %}
       </div>
 
       <!-- 저장 / 취소 버튼 -->

@@ -4,7 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}404 R·N·F AI{% endblock %}</title>
+
   <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+
+  {% if is_logged_in and is_admin %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/realtime_alert.css') }}">
+  {% endif %}
+
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -16,7 +22,31 @@
 
   {% include 'layout/footer.html' %}
 
+  {% if is_logged_in and is_admin %}
+    <!-- 관리자 공통 실시간 알림 토스트 영역 -->
+    <div id="realtime-alert-toast-container" class="realtime-alert-toast-container"></div>
+
+    <!-- 관리자 공통 실시간 알림 사운드 -->
+    <audio
+      id="sound-danger"
+      src="{{ url_for('static', filename='sounds/danger.mp3') }}"
+      preload="auto">
+    </audio>
+
+    <audio
+      id="sound-emergency"
+      src="{{ url_for('static', filename='sounds/emergency.mp3') }}"
+      preload="auto">
+    </audio>
+  {% endif %}
+
   <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+
+  {% if is_logged_in and is_admin %}
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/realtime_alert.js') }}"></script>
+  {% endif %}
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>

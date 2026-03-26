@@ -362,7 +362,8 @@ body {
 
 /* 기존 input 숨기기 */
 .edit-file-input {
-  display: none;
+  position: absolute;
+  left: -9999px;
 }
 
 /* ===== AI 분석 표시 박스 ===== */

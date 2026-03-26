@@ -7,11 +7,15 @@
 - GET /admin/reports/ : 관리자 신고 목록 페이지
 - GET /admin/reports/<report_id> : 관리자 신고 상세 페이지
 - POST /admin/reports/<report_id>/status : 관리자 신고 상태 변경
+- POST /admin/reports/<report_id>/compare/run : 비교분석 실행
+- GET /admin/reports/<report_id>/compare/history : 비교분석 이력 조회
+- GET /admin/reports/compare/<compare_run_id> : 비교분석 상세 조회
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 
 from app.services.admin_report_service import AdminReportService
+from app.services.admin_ai_compare_service import AdminAICompareService
 
 
 admin_report_bp = Blueprint(
@@ -19,6 +23,9 @@ admin_report_bp = Blueprint(
     __name__,
     url_prefix="/admin/reports"
 )
+
+admin_report_service = AdminReportService()
+admin_ai_compare_service = AdminAICompareService()
 
 
 def _check_admin():
@@ -37,44 +44,33 @@ def _check_admin():
 
 @admin_report_bp.route("/", methods=["GET"])
 def report_list():
-    """
-    관리자 신고 목록 페이지
-    - 페이징
-    - 상태 필터
-    - 위험도 필터
-    - 검색
-    """
-
     check = _check_admin()
     if check:
         return check
 
     page = request.args.get("page", 1, type=int)
+    keyword = request.args.get("keyword", "", type=str)
     status = request.args.get("status", "", type=str)
     risk_level = request.args.get("risk_level", "", type=str)
-    keyword = request.args.get("keyword", "", type=str)
+    sort = request.args.get("sort", "", type=str)
 
-    service = AdminReportService()
-
-    try:
-        result = service.get_report_list(
-            page=page,
-            per_page=10,
-            status=status,
-            risk_level=risk_level,
-            keyword=keyword
-        )
-    except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for("admin.dashboard"))
+    result = admin_report_service.get_report_list(
+        page=page,
+        per_page=10,
+        status=status or None,
+        risk_level=risk_level or None,
+        keyword=keyword or None,
+        sort=sort or None
+    )
 
     return render_template(
         "admin/reports/list.html",
         reports=result["reports"],
         pagination=result["pagination"],
+        keyword=keyword,
         status=status,
         risk_level=risk_level,
-        keyword=keyword
+        sort=sort
     )
 
 
@@ -86,16 +82,16 @@ def report_detail(report_id):
     - 첨부 이미지 / 영상
     - AI 분석 결과
     - 상태 변경 이력
+    - 비교분석 이력
     """
 
     check = _check_admin()
     if check:
         return check
 
-    service = AdminReportService()
-
     try:
-        report_data = service.get_report_detail(report_id)
+        report_data = admin_report_service.get_report_detail(report_id)
+        compare_runs = admin_ai_compare_service.get_compare_runs_by_report(report_id)
     except ValueError as e:
         flash(str(e), "danger")
         return redirect(url_for("admin_report.report_list"))
@@ -105,7 +101,8 @@ def report_detail(report_id):
         report=report_data["report"],
         files=report_data.get("files", []),
         status_logs=report_data.get("status_logs", []),
-        ai_analysis=report_data.get("ai_analysis")
+        ai_analysis=report_data.get("ai_analysis"),
+        compare_runs=compare_runs
     )
 
 
@@ -129,10 +126,8 @@ def update_report_status(report_id):
         flash("잘못된 상태 값입니다.", "danger")
         return redirect(url_for("admin_report.report_detail", report_id=report_id))
 
-    service = AdminReportService()
-
     try:
-        updated = service.update_report_status(
+        updated = admin_report_service.update_report_status(
             report_id=report_id,
             status=new_status,
             changed_by=admin_id,
@@ -148,3 +143,91 @@ def update_report_status(report_id):
         flash(str(e), "danger")
 
     return redirect(url_for("admin_report.report_detail", report_id=report_id))
+
+
+@admin_report_bp.route("/<int:report_id>/compare/run", methods=["POST"])
+def run_compare_analysis(report_id):
+    """
+    관리자 비교분석 실행
+    """
+
+    check = _check_admin()
+    if check:
+        return check
+
+    admin_id = session.get("user_id")
+
+    try:
+        compare_run = admin_ai_compare_service.run_compare_analysis(
+            report_id=report_id,
+            requested_by=admin_id
+        )
+        return redirect(
+            url_for("admin_report.compare_detail", compare_run_id=compare_run.id)
+        )
+
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("admin_report.report_detail", report_id=report_id))
+    except Exception as e:
+        flash(f"비교분석 중 오류가 발생했습니다: {str(e)}", "danger")
+        return redirect(url_for("admin_report.report_detail", report_id=report_id))
+
+
+@admin_report_bp.route("/<int:report_id>/compare/history", methods=["GET"])
+def compare_history(report_id):
+    """
+    특정 신고의 비교분석 이력 조회
+    """
+
+    check = _check_admin()
+    if check:
+        return check
+
+    try:
+        report = admin_ai_compare_service.get_report(report_id)
+        if not report:
+            raise ValueError("신고 정보를 찾을 수 없습니다.")
+
+        compare_runs = admin_ai_compare_service.get_compare_runs_by_report(report_id)
+
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("admin_report.report_list"))
+
+    return render_template(
+        "admin/reports/compare_history.html",
+        report=report,
+        compare_runs=compare_runs
+    )
+
+
+@admin_report_bp.route("/compare/<int:compare_run_id>", methods=["GET"])
+def compare_detail(compare_run_id):
+    """
+    비교분석 상세 조회
+    """
+
+    check = _check_admin()
+    if check:
+        return check
+
+    detail = admin_ai_compare_service.get_compare_run_detail(compare_run_id)
+
+    if not detail:
+        flash("비교분석 결과를 찾을 수 없습니다.", "danger")
+        return redirect(url_for("admin_report.report_list"))
+
+    compare_run = detail["compare_run"]
+    results = detail["results"]
+    result_dicts = [r.to_dict() for r in results]
+
+    report = admin_ai_compare_service.get_report(compare_run.report_id)
+
+    return render_template(
+        "admin/reports/compare_detail.html",
+        report=report,
+        compare_run=compare_run,
+        results=results,
+        result_dicts=result_dicts
+    )

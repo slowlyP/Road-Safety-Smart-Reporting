@@ -24,3 +24,9 @@ AI-accident-detection/app/static/uploads/
 
 # Model weights
 AI-accident-detection/yolov8n.pt
+
+# AI model weights
+*.pt
+*.pth
+*.onnx
+ai/models/

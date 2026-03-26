@@ -8,6 +8,7 @@
 """
 
 from datetime import datetime
+from sqlalchemy import case
 
 from app.extensions import db
 from app.models.report_model import Report
@@ -18,15 +19,15 @@ from app.models.user_model import User
 
 
 class AdminReportService:
-    def get_report_list(self, page=1, per_page=10, status=None, risk_level=None, keyword=None):
-        """
-        관리자 신고 목록 조회
-        - 페이징
-        - 상태 필터
-        - 위험도 필터
-        - 키워드 검색
-        """
-
+    def get_report_list(
+        self,
+        page=1,
+        per_page=10,
+        status=None,
+        risk_level=None,
+        keyword=None,
+        sort=None
+    ):
         query = Report.query.filter(Report.deleted_at.is_(None))
 
         if status:
@@ -39,7 +40,32 @@ class AdminReportService:
             search = f"%{keyword}%"
             query = query.filter(Report.title.like(search))
 
-        pagination = query.order_by(Report.created_at.desc()).paginate(
+        # 최신순 버튼 눌렀을 때
+        if sort == "latest":
+            query = query.order_by(Report.created_at.desc())
+
+        # 기본 정렬
+        else:
+            status_priority = case(
+                (Report.status == "접수", 0),
+                else_=1
+            )
+
+            risk_priority = case(
+                (Report.risk_level == "긴급", 0),
+                (Report.risk_level == "위험", 1),
+                (Report.risk_level == "주의", 2),
+                (Report.risk_level == "낮음", 3),
+                else_=4
+            )
+
+            query = query.order_by(
+                status_priority.asc(),   # 접수 먼저
+                risk_priority.asc(),     # 접수 안에서는 위험도 높은 순
+                Report.created_at.desc() # 같은 조건이면 최신순
+            )
+
+        pagination = query.paginate(
             page=page,
             per_page=per_page,
             error_out=False

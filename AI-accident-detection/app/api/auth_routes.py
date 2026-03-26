@@ -51,6 +51,8 @@ def login():
         # 세션 저장
         session["user_id"] = user.id
         session["username"] = user.username
+        session["email"] = user.email
+        session["name"] = user.name
         session["role"] = user.role
 
         return success_response(

@@ -10,3 +10,6 @@ from .detection_model import Detection
 from .alert_model import Alert
 from .report_status_log_model import ReportStatusLog
 from .admin_log_model import AdminLog
+
+from .ai_compare_run import AiCompareRun
+from .ai_compare_result import AiCompareResult

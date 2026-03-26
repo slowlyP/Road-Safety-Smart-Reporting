@@ -22,17 +22,21 @@
         <li class="admin-nav-item">
           <a
             href="{{ url_for('admin_user.user_list') }}"
-            class="{% if endpoint.startswith('admin_user.') %}active{% endif %}"
+            class="{% if endpoint.startswith('admin_user.') and not endpoint.startswith('admin_user.role_request') %}active{% endif %}"
           >
             회원 관리
           </a>
         </li>
+
         <li class="admin-nav-item">
           <a
             href="{{ url_for('admin_user.role_request_list') }}"
-            class="{% if endpoint == 'admin_user.role_request_list' %}active{% endif %}"
+            class="{% if endpoint.startswith('admin_user.role_request') %}active{% endif %}"
           >
-            권한 신청 관리
+            <span>권한 신청 관리</span>
+            {% if admin_pending_role_count > 0 %}
+              <span class="admin-side-badge">{{ admin_pending_role_count }}</span>
+            {% endif %}
           </a>
         </li>
 
@@ -41,7 +45,20 @@
             href="{{ url_for('admin_report.report_list') }}"
             class="{% if endpoint.startswith('admin_report.') %}active{% endif %}"
           >
-            신고 관리
+            <span>신고 관리</span>
+            {% if admin_pending_report_count > 0 %}
+              <span class="admin-side-badge">{{ admin_pending_report_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_realtime_alert.realtime_alert_page') }}"
+            class="{% if endpoint.startswith('admin_realtime_alert.') %}active{% endif %} admin-alert-link"
+          >
+            <span>실시간 위험 알림</span>
+            <span id="realtime-alert-badge" class="realtime-alert-badge">0</span>
           </a>
         </li>
 
@@ -50,7 +67,7 @@
             href="{{ url_for('admin_ai.summary') }}"
             class="{% if endpoint.startswith('admin_ai.') %}active{% endif %}"
           >
-            AI 로그
+            AI 분석 대시보드
           </a>
         </li>
 

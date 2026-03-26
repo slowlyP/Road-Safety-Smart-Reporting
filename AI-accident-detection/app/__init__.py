@@ -4,8 +4,9 @@ Flask 애플리케이션을 생성하는 파일
 
 from flask import Flask, session
 from werkzeug.exceptions import RequestEntityTooLarge
+
 from .config import Config
-from .extensions import db, migrate
+from .extensions import db, migrate, socketio
 from app.common.response import error_response
 
 
@@ -16,6 +17,9 @@ def create_app():
         static_folder="static"
     )
 
+    # -------------------------------------------------
+    # 앱 설정 로드
+    # -------------------------------------------------
     app.config.from_object(Config)
 
     # -------------------------------------------------
@@ -29,13 +33,22 @@ def create_app():
             status_code=413
         )
 
+    # -------------------------------------------------
+    # Flask 확장 초기화
+    # -------------------------------------------------
     # DB 초기화
     db.init_app(app)
 
     # migration 초기화
     migrate.init_app(app, db)
 
+    # 소켓 초기화
+    socketio.init_app(app)
+
+    # -------------------------------------------------
     # 모델 로딩
+    # - SQLAlchemy가 모델을 인식할 수 있도록 앱 컨텍스트 안에서 import
+    # -------------------------------------------------
     with app.app_context():
         from . import models
 
@@ -44,12 +57,33 @@ def create_app():
     # -----------------------------
     @app.context_processor
     def inject_user_state():
+        """
+        모든 템플릿에서 로그인 상태 / 관리자 여부 / 관리자 사이드바 카운트를 공통 사용
+        """
         is_logged_in = "user_id" in session
         is_admin = session.get("role") == "admin"
 
+        admin_pending_report_count = 0
+        admin_pending_role_count = 0
+
+        if is_admin:
+            from app.models.report_model import Report
+            from app.models.role_request_model import RoleRequest
+
+            admin_pending_report_count = Report.query.filter(
+                Report.deleted_at.is_(None),
+                Report.status == "접수"
+            ).count()
+
+            admin_pending_role_count = RoleRequest.query.filter(
+                RoleRequest.status == "대기"
+            ).count()
+
         return {
             "is_logged_in": is_logged_in,
-            "is_admin": is_admin
+            "is_admin": is_admin,
+            "admin_pending_report_count": admin_pending_report_count,
+            "admin_pending_role_count": admin_pending_role_count
         }
 
     # -----------------------------
@@ -63,6 +97,8 @@ def create_app():
     from app.api.admin_user_routes import admin_user_bp
     from app.api.admin_ai_routes import admin_ai_bp
     from app.api.report_list_routes import report_list_bp
+    from app.api.admin_realtime_alert_routes import admin_realtime_alert_bp
+    from app.api.realtime_monitor_routes import realtime_monitor_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -72,5 +108,13 @@ def create_app():
     app.register_blueprint(admin_user_bp)
     app.register_blueprint(admin_ai_bp)
     app.register_blueprint(report_list_bp)
+    app.register_blueprint(admin_realtime_alert_bp)
+    app.register_blueprint(realtime_monitor_bp)
+
+    # -----------------------------
+    # 소켓 이벤트 등록
+    # - import만 해도 이벤트 핸들러가 등록되도록 구성
+    # -----------------------------
+    from app.socket_events import admin_realtime_alert_socket  # noqa: F401
 
     return app

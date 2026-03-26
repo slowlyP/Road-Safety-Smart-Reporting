@@ -1,0 +1,116 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}실시간 위험 알림{% endblock %}
+
+{% block admin_content %}
+<div class="realtime-alert-page">
+
+    <!-- 페이지 상단 -->
+    <div class="realtime-alert-page-header">
+        <div class="realtime-alert-page-title">
+            <h2>실시간 위험 알림</h2>
+            <p>
+                AI 탐지 결과 중 <strong>위험</strong>, <strong>긴급</strong> 등급만
+                실시간으로 표시합니다.
+            </p>
+        </div>
+
+        <div class="realtime-alert-toolbar">
+            <button type="button" id="mark-all-alerts-read-btn">
+                전체 읽음 처리
+            </button>
+        </div>
+    </div>
+
+    <!-- 소켓 상태 표시 -->
+    <div style="margin-bottom: 14px; color: #bfc9dc; font-size: 14px;">
+        소켓 상태: <span id="socket-status">연결 대기중</span>
+    </div>
+
+    <!-- 페이지 내부 배너 -->
+    <div id="realtime-alert-banner" class="realtime-alert-banner" style="display: none;"></div>
+
+    <!-- 알림 리스트 -->
+    <div id="realtime-alert-list" class="realtime-alert-table-wrap">
+        {% if alerts %}
+        <table class="realtime-alert-table">
+            <thead>
+                <tr>
+                    <th>등급</th>
+                    <th>메시지</th>
+                    <th>신고 제목</th>
+                    <th>위치</th>
+                    <th>탐지 객체</th>
+                    <th>신뢰도</th>
+                    <th>발생 시각</th>
+                    <th>상세</th>
+                    <th>처리</th>
+                </tr>
+            </thead>
+            <tbody id="realtime-alert-tbody">
+                {% for alert in alerts %}
+                <tr
+                    class="{% if not alert.is_read %}unread{% endif %}"
+                    data-alert-id="{{ alert.alert_id }}"
+                    data-alert-level="{{ alert.alert_level }}"
+                >
+                    <td>
+                        <span class="alert-level-badge {% if alert.alert_level == '긴급' %}emergency{% else %}danger{% endif %}">
+                            {{ alert.alert_level }}
+                        </span>
+                    </td>
+                    <td>{{ alert.message }}</td>
+                    <td>{{ alert.report_title }}</td>
+                    <td>{{ alert.location_text }}</td>
+                    <td>{{ alert.detected_label }}</td>
+                    <td>{{ "%.2f"|format(alert.confidence or 0) }}</td>
+                    <td>{{ alert.created_at }}</td>
+                    <td>
+                        <a
+                            href="{{ url_for('admin_report.report_detail', report_id=alert.report_id) }}"
+                            class="realtime-alert-toast-link"
+                        >
+                            상세보기
+                        </a>
+                    </td>
+                    <td>
+                        <button
+                            type="button"
+                            class="mark-read-btn btn-mark-read"
+                            data-alert-id="{{ alert.alert_id }}"
+                            {% if alert.is_read %}disabled{% endif %}
+                        >
+                            {% if alert.is_read %}읽음 완료{% else %}읽음 처리{% endif %}
+                        </button>
+                    </td>
+                </tr>
+
+                {% if alert.file_path %}
+                <tr
+                    class="{% if not alert.is_read %}unread{% endif %}"
+                    data-parent-alert-id="{{ alert.alert_id }}"
+                >
+                    <td colspan="9" style="padding-top: 0;">
+                        <div style="padding: 8px 0;">
+                            <img
+                                src="{{ alert.file_path }}"
+                                alt="탐지 이미지"
+                                style="max-width: 240px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);"
+                            >
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="realtime-alert-empty" style="color:#bfc9dc; padding: 24px 8px;">
+            현재 표시할 위험/긴급 알림이 없습니다.
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
