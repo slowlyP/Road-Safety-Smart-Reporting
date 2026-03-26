@@ -22,7 +22,6 @@
 <section class="monitor-section">
     <div class="monitor-container">
 
-        <!-- 상단 요약 카드 -->
         <div class="monitor-summary-grid">
             <div class="monitor-summary-card">
                 <div class="summary-card-label">현재 위험 구간 수</div>
@@ -57,7 +56,6 @@
             </div>
         </div>
 
-        <!-- 필터 바 -->
         <div class="monitor-filter-bar">
             <div class="monitor-filter-left">
                 <button type="button" class="filter-btn active" data-risk-filter="all">전체</button>
@@ -84,7 +82,6 @@
             </div>
         </div>
 
-        <!-- 경로 위험 보기 -->
         <div class="route-risk-panel">
             <div class="route-risk-header">
                 <h2>경로 위험 보기</h2>
@@ -139,14 +136,54 @@
             </div>
         </div>
 
-        <!-- 현재 필터 상태 -->
+        <div id="route-risk-summary-panel" class="route-risk-summary-panel hidden">
+            <div class="route-risk-summary-header">
+                <div>
+                    <h3>경로 위험 결과 요약</h3>
+                    <p>현재 선택한 이동 경로 기준으로 위험 지점을 분석한 결과입니다.</p>
+                </div>
+                <span id="route-risk-overall-badge" class="route-risk-overall-badge normal">보통</span>
+            </div>
+
+            <div class="route-risk-summary-grid">
+                <div class="route-risk-summary-card total">
+                    <div class="route-risk-summary-label">총 위험 지점</div>
+                    <div class="route-risk-summary-value" id="route-summary-total-count">0</div>
+                    <div class="route-risk-summary-sub">경로 반경 내 탐지된 전체 위험 수</div>
+                </div>
+
+                <div class="route-risk-summary-card emergency">
+                    <div class="route-risk-summary-label">긴급</div>
+                    <div class="route-risk-summary-value" id="route-summary-emergency-count">0</div>
+                    <div class="route-risk-summary-sub">즉시 대응이 필요한 수준</div>
+                </div>
+
+                <div class="route-risk-summary-card danger">
+                    <div class="route-risk-summary-label">위험</div>
+                    <div class="route-risk-summary-value" id="route-summary-danger-count">0</div>
+                    <div class="route-risk-summary-sub">사고 가능성이 높은 구간</div>
+                </div>
+
+                <div class="route-risk-summary-card warning">
+                    <div class="route-risk-summary-label">주의</div>
+                    <div class="route-risk-summary-value" id="route-summary-warning-count">0</div>
+                    <div class="route-risk-summary-sub">운전자 주의가 필요한 구간</div>
+                </div>
+            </div>
+
+            <div class="route-risk-summary-footer">
+                <div class="route-risk-summary-message">
+                    <span class="summary-message-label">안내</span>
+                    <strong id="route-summary-message">경로 분석 결과가 여기에 표시됩니다.</strong>
+                </div>
+            </div>
+        </div>
+
         <div class="monitor-filter-status" id="monitor-filter-status">
             전체 지역 기준으로 전체 위험도를 표시하고 있습니다.
         </div>
 
-        <!-- 메인 영역 -->
         <div class="monitor-main-grid">
-            <!-- 지도 패널 -->
             <div class="monitor-map-panel">
                 <div class="monitor-panel-header">
                     <h2>지도 기반 위험 현황</h2>
@@ -174,11 +211,23 @@
                 </div>
             </div>
 
-            <!-- 리스트 패널 -->
             <div class="monitor-list-panel">
                 <div class="monitor-panel-header">
-                    <h2 id="risk-list-title">실시간 위험 리스트</h2>
-                    <p id="risk-list-subtitle">최근 탐지된 위험 이벤트를 빠르게 확인할 수 있습니다.</p>
+                    <div class="risk-list-header-row">
+                        <div class="risk-list-header-text">
+                            <h2 id="risk-list-title">실시간 위험 리스트</h2>
+                            <p id="risk-list-subtitle">최근 탐지된 위험 이벤트를 빠르게 확인할 수 있습니다.</p>
+                        </div>
+
+                        <div class="risk-list-sort-wrap">
+                            <label for="risk-sort-select" class="risk-sort-label">정렬</label>
+                            <select id="risk-sort-select" class="risk-sort-select">
+                                <option value="risk_desc">위험도 높은 순</option>
+                                <option value="latest">최신순</option>
+                                <option value="confidence_desc">신뢰도 높은 순</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="realtime-risk-list" class="realtime-risk-list">
@@ -208,7 +257,6 @@
     </div>
 </section>
 
-<!-- 상세 보기 모달 -->
 <div id="risk-detail-modal" class="risk-detail-modal hidden">
     <div class="risk-detail-backdrop" id="risk-detail-backdrop"></div>
 
@@ -279,6 +327,14 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- 전역 로딩 오버레이 -->
+<div id="global-loading-overlay" class="loading-overlay hidden">
+    <div class="loading-box">
+        <div class="loading-spinner"></div>
+        <div id="loading-text" class="loading-text">데이터 불러오는 중...</div>
     </div>
 </div>
 
