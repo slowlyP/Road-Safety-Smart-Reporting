@@ -71,11 +71,26 @@
         </div>
 
         <div class="filter-actions">
-          <p><br></p>
-          <button type="submit" class="btn btn-primary">검색</button>
-          <a href="{{ url_for('admin_report.report_list') }}" class="btn-secondary">초기화</a>
-          <p><br></p>
-        </div>
+  <p><br></p>
+
+  <button type="submit" class="btn btn-primary">검색</button>
+
+  <!-- 🔥 최신순 버튼 -->
+  <a
+    href="{{ url_for('admin_report.report_list',
+      keyword=keyword,
+      status=status,
+      risk_level=risk_level,
+      sort='latest') }}"
+    class="btn-secondary"
+  >
+    최신순
+  </a>
+
+  <a href="{{ url_for('admin_report.report_list') }}" class="btn-secondary">초기화</a>
+
+  <p><br></p>
+</div>
 
       </div>
     </form>

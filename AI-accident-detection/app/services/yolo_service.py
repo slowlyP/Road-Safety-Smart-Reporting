@@ -43,6 +43,7 @@ def detect_video(video_path):
 
     all_detections = []
     frame_count = 0
+    sample_interval = 5  # 1이면 매 프레임, 2면 2프레임마다
 
     while True:
         ret, frame = cap.read()
@@ -51,13 +52,12 @@ def detect_video(video_path):
 
         frame_count += 1
 
-        # 10프레임마다 샘플링
-        if frame_count % 10 != 0:
+        if frame_count % sample_interval != 0:
             continue
 
         time_sec = frame_count / fps
 
-        results = model(frame)
+        results = model(frame, conf=0.25, imgsz=832)
 
         for r in results:
             for box in r.boxes:

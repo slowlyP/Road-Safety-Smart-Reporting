@@ -109,6 +109,29 @@
   border-color: rgba(255, 122, 31, 0.25);
   background: rgba(255, 255, 255, 0.06);
 }
+.admin-side-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-side-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff6b6b, #ff3d71);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 22px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(255, 80, 80, 0.35);
+}
+.admin-nav-item a {
+  justify-content: space-between;
+  gap: 12px;
+}
 
 /* ========================================
    본문 콘텐츠 영역

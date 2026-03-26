@@ -64,13 +64,33 @@ def create_app():
         {% if is_logged_in and is_admin %}
             실시간 알림 CSS / JS / 오디오 / 토스트 영역 로드
         {% endif %}
+
+        모든 템플릿에서 로그인 상태 / 관리자 여부 / 관리자 사이드바 카운트를 공통 사용
         """
         is_logged_in = "user_id" in session
         is_admin = session.get("role") == "admin"
 
+        admin_pending_report_count = 0
+        admin_pending_role_count = 0
+
+        if is_admin:
+            from app.models.report_model import Report
+            from app.models.role_request_model import RoleRequest
+
+            admin_pending_report_count = Report.query.filter(
+                Report.deleted_at.is_(None),
+                Report.status == "접수"
+            ).count()
+
+            admin_pending_role_count = RoleRequest.query.filter(
+                RoleRequest.status == "대기"
+            ).count()
+
         return {
             "is_logged_in": is_logged_in,
-            "is_admin": is_admin
+            "is_admin": is_admin,
+            "admin_pending_report_count": admin_pending_report_count,
+            "admin_pending_role_count": admin_pending_role_count
         }
 
     # -----------------------------
@@ -86,7 +106,10 @@ def create_app():
     from app.api.report_list_routes import report_list_bp
     from app.api.admin_realtime_alert_routes import admin_realtime_alert_bp
     from app.api.realtime_monitor_routes import realtime_monitor_bp
+
     from app.api.kakao_navigation_routes import kakao_navigation_bp
+
+
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -98,7 +121,9 @@ def create_app():
     app.register_blueprint(report_list_bp)
     app.register_blueprint(admin_realtime_alert_bp)
     app.register_blueprint(realtime_monitor_bp)
+
     app.register_blueprint(kakao_navigation_bp)
+
 
     # -----------------------------
     # 소켓 이벤트 등록

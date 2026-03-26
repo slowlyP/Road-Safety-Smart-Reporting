@@ -21,6 +21,16 @@
       <a href="{{ url_for('admin_report.report_list') }}" class="btn btn-outline">
         목록으로
       </a>
+
+      <form
+        method="POST"
+        action="{{ url_for('admin_report.run_compare_analysis', report_id=report.id) }}"
+        style="display:inline;"
+      >
+        <button type="submit" class="btn btn-primary">
+          AI 비교분석 실행
+        </button>
+      </form>
     </div>
   </div>
 
@@ -216,6 +226,42 @@
     </div>
 
   </div>
+  <br>
+  <!-- 비교분석 이력 -->
+<div class="detail-card detail-card-full">
+  <h2 class="detail-card-title">AI 비교분석 이력</h2>
+
+  {% if compare_runs %}
+    <div class="history-list ai-scroll-box">
+      {% for run in compare_runs %}
+        <div class="history-item">
+          <div class="history-main">
+            <strong>실행 ID:</strong> {{ run.id }}
+            /
+            <strong>상태:</strong> {{ run.status }}
+          </div>
+
+          <div class="history-sub">
+            실행일시: {{ run.created_at }}
+          </div>
+
+          <div style="margin-top: 8px;">
+            <a
+              href="{{ url_for('admin_report.compare_detail', compare_run_id=run.id) }}"
+              class="btn btn-sm btn-outline"
+            >
+              상세 보기
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-box">
+      비교분석 이력이 없습니다.
+    </div>
+  {% endif %}
+</div>
 </section>
 
 <script id="ai-analysis-data" type="application/json">

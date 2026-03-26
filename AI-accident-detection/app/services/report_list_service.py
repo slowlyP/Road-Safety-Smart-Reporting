@@ -86,7 +86,7 @@ class ReportService:
             report.content = content or ""
 
             is_file_changed = (new_file is not None and new_file.filename.strip() != '')
-            
+
             # 변수 초기화
             original_name, stored_name, save_path, inferred_type, file_size = None, None, None, None, None
 
@@ -94,7 +94,7 @@ class ReportService:
             if is_file_changed:
                 original_name = secure_filename(new_file.filename)
                 ext = os.path.splitext(original_name)[1].lower()
-                
+
                 new_file.seek(0, os.SEEK_END)
                 file_size = new_file.tell()
                 new_file.seek(0)
@@ -104,7 +104,7 @@ class ReportService:
                 upload_dir = os.path.join("app", "static", "uploads")
                 os.makedirs(upload_dir, exist_ok=True)
                 save_path = os.path.join(upload_dir, stored_name)
-                
+
                 new_file.save(save_path)
                 print(f"[DEBUG] 파일 저장 완료: {save_path}")
 
@@ -118,7 +118,6 @@ class ReportService:
                         os.remove(save_path)
                         return False, "영상은 30초 이내만 가능합니다."
 
-
             # 2. 기존 데이터 정리
             if delete_file == "Y" or is_file_changed:
                 # [추가] 외래 키 제약 조건 해결을 위한 선행 작업
@@ -128,14 +127,14 @@ class ReportService:
 
                 if old_ids:
                     # 방법 A: 연결된 알림(Alerts)을 삭제 (가장 확실한 방법)
-                    # 만약 Alert 모델이 정의되어 있다면 Alert.query를 사용하고, 
+                    # 만약 Alert 모델이 정의되어 있다면 Alert.query를 사용하고,
                     # 없다면 아래처럼 직접 SQL 실행문(text)을 사용합니다.
                     from sqlalchemy import text
                     db.session.execute(
                         text("DELETE FROM alerts WHERE detection_id IN :ids"),
                         {"ids": old_ids}
                     )
-                    
+
                     # 만약 관리자 알림 기록을 남겨둬야 한다면 삭제 대신 NULL로 업데이트할 수도 있습니다.
                     # db.session.execute(
                     #     text("UPDATE alerts SET detection_id = NULL WHERE detection_id IN :ids"),
@@ -156,7 +155,7 @@ class ReportService:
             if is_file_changed:
                 report.report_type = inferred_type
                 db_file_path = f"static/uploads/{stored_name}"
-                
+
                 new_file_obj = ReportRepository.create_report_file(
                     report_id=report.id,
                     original_name=original_name,
@@ -168,12 +167,12 @@ class ReportService:
                 db.session.flush()
 
                 try:
-                    print(f"[DEBUG] >>> AI 재분석 진입 완료. 경로: {save_path}") # 진입 확인
-                    
+                    print(f"[DEBUG] >>> AI 재분석 진입 완료. 경로: {save_path}")  # 진입 확인
+
                     # 분석 시작
                     detections = detect_image(save_path) if inferred_type == '이미지' else detect_video(save_path)
-                    
-                    print(f"[DEBUG] >>> AI 분석 종료. 탐지된 물체 수: {len(detections) if detections else 0}") # 종료 확인
+
+                    print(f"[DEBUG] >>> AI 분석 종료. 탐지된 물체 수: {len(detections) if detections else 0}")  # 종료 확인
 
                     # ... (이후 DB 저장 로직)
 
@@ -199,7 +198,7 @@ class ReportService:
                                     bbox_y2=int(d['bbox'][3]),
                                     created_at=datetime.now()
                                 ))
-                        
+
                         report.status = "접수"
                         report.risk_level = risk_names.get(highest_score, "주의")
                     else:
