@@ -8,6 +8,8 @@ class RealtimeMonitorService:
     탐지 현황 독립 페이지용 서비스
     """
 
+    DEFAULT_DAYS = RealtimeMonitorRepository.DEFAULT_VISIBLE_DAYS
+
     @staticmethod
     def _safe_float(value, default=0.0):
         try:
@@ -19,6 +21,26 @@ class RealtimeMonitorService:
     def _safe_int(value, default=0):
         try:
             return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _sanitize_days(days, default=DEFAULT_DAYS):
+        try:
+            value = int(days)
+            if value <= 0:
+                return default
+            return min(value, 365)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _sanitize_limit(limit, default=20, max_limit=500):
+        try:
+            value = int(limit)
+            if value <= 0:
+                return default
+            return min(value, max_limit)
         except (TypeError, ValueError):
             return default
 
@@ -64,12 +86,16 @@ class RealtimeMonitorService:
         return normalized
 
     @staticmethod
-    def get_summary_cards():
-        return RealtimeMonitorRepository.get_summary_data()
+    def get_summary_cards(days=None):
+        days = RealtimeMonitorService._sanitize_days(days)
+        return RealtimeMonitorRepository.get_summary_data(days=days)
 
     @staticmethod
-    def get_map_points():
-        rows = RealtimeMonitorRepository.get_map_points()
+    def get_map_points(limit=300, days=None):
+        days = RealtimeMonitorService._sanitize_days(days)
+        limit = RealtimeMonitorService._sanitize_limit(limit, default=300, max_limit=1000)
+
+        rows = RealtimeMonitorRepository.get_map_points(limit=limit, days=days)
 
         result = []
         seen_report_ids = set()
@@ -96,8 +122,11 @@ class RealtimeMonitorService:
         return result
 
     @staticmethod
-    def get_recent_risk_list(limit=20):
-        rows = RealtimeMonitorRepository.get_recent_risk_list(limit=limit)
+    def get_recent_risk_list(limit=20, days=None):
+        days = RealtimeMonitorService._sanitize_days(days)
+        limit = RealtimeMonitorService._sanitize_limit(limit, default=20, max_limit=200)
+
+        rows = RealtimeMonitorRepository.get_recent_risk_list(limit=limit, days=days)
 
         result = []
         seen_report_ids = set()
