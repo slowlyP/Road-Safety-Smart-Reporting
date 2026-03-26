@@ -24,3 +24,10 @@ app/static/uploads/
 
 # Model weights
 yolov8n.pt
+AI-accident-detection/yolov8n.pt
+
+# AI model weights
+*.pt
+*.pth
+*.onnx
+ai/models/

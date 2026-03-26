@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isFileSelected) {
                 console.log("[DEBUG] 새 파일 발견, AI 재분석 로딩 시작");
                 loadingModal.style.display = "flex";
-                
+
                 // 만약 애니메이션 시작 함수가 별도로 있다면 호출
                 startLoadingAnimation();
             } else {
@@ -190,4 +190,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
-
