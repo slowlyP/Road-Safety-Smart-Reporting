@@ -51,7 +51,7 @@ def get_map_points():
     days = _get_days_param(default=180)
     limit = _get_limit_param(default=300)
 
-    items = RealtimeMonitorService.get_map_points(limit=limit, days=days)
+    items = RealtimeMonitorService.get_map_points(limit=20, days=days)
 
     return jsonify({
         "success": True,
@@ -66,7 +66,7 @@ def get_risk_list():
     days = _get_days_param(default=180)
     limit = _get_limit_param(default=20)
 
-    items = RealtimeMonitorService.get_recent_risk_list(limit=limit, days=days)
+    items = RealtimeMonitorService.get_recent_risk_list(limit=20, days=days)
 
     return jsonify({
         "success": True,

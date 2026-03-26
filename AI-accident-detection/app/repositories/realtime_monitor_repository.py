@@ -144,7 +144,7 @@ class RealtimeMonitorRepository:
             .filter(Report.status.in_(RealtimeMonitorRepository.MAP_VISIBLE_STATUSES))
             .filter(Report.risk_level.in_(RealtimeMonitorRepository.TARGET_RISK_LEVELS))
             .filter(Report.created_at >= since_time)
-            .order_by(risk_order.desc(), Report.created_at.desc())
+            .order_by(Report.created_at.desc())
             .limit(limit)
             .all()
         )

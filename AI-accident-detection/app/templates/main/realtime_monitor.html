@@ -56,31 +56,6 @@
         </div>
       </div>
 
-      <div class="monitor-filter-bar">
-        <div class="monitor-filter-left">
-          <button type="button" class="filter-btn active" data-risk-filter="all">전체</button>
-          <button type="button" class="filter-btn" data-risk-filter="긴급">긴급</button>
-          <button type="button" class="filter-btn" data-risk-filter="위험">위험</button>
-          <button type="button" class="filter-btn" data-risk-filter="주의">주의</button>
-        </div>
-
-        <div class="monitor-filter-right">
-          <button type="button" class="location-btn" id="find-nearby-risk-btn">
-            내 주변 위험 보기
-          </button>
-
-          <select id="nearby-radius-select" class="radius-select">
-            <option value="1">반경 1km</option>
-            <option value="3" selected>반경 3km</option>
-            <option value="5">반경 5km</option>
-            <option value="10">반경 10km</option>
-          </select>
-
-          <button type="button" class="location-reset-btn" id="reset-nearby-risk-btn">
-            전체 보기로 복원
-          </button>
-        </div>
-      </div>
 
       <div class="route-risk-panel">
         <div class="route-risk-header">
@@ -179,6 +154,33 @@
           </div>
         </div>
       </div>
+
+     <div class="monitor-filter-bar">
+        <div class="monitor-filter-left">
+          <button type="button" class="filter-btn active" data-risk-filter="all">전체</button>
+          <button type="button" class="filter-btn" data-risk-filter="긴급">긴급</button>
+          <button type="button" class="filter-btn" data-risk-filter="위험">위험</button>
+          <button type="button" class="filter-btn" data-risk-filter="주의">주의</button>
+        </div>
+
+        <div class="monitor-filter-right">
+          <button type="button" class="location-btn" id="find-nearby-risk-btn">
+            내 주변 위험 보기
+          </button>
+
+          <select id="nearby-radius-select" class="radius-select">
+            <option value="1">반경 1km</option>
+            <option value="3" selected>반경 3km</option>
+            <option value="5">반경 5km</option>
+            <option value="10">반경 10km</option>
+          </select>
+
+          <button type="button" class="location-reset-btn" id="reset-nearby-risk-btn">
+            전체 보기로 복원
+          </button>
+        </div>
+      </div>
+
 
       <div class="monitor-filter-status" id="monitor-filter-status">
         전체 지역 기준으로 전체 위험도를 표시하고 있습니다.

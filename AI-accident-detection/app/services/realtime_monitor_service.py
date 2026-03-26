@@ -122,12 +122,12 @@ class RealtimeMonitorService:
         return result
 
     @staticmethod
-    def get_recent_risk_list(limit=20, days=None):
+    def get_recent_risk_list(limit=100, days=None):
         days = RealtimeMonitorService._sanitize_days(days)
         limit = RealtimeMonitorService._sanitize_limit(limit, default=20, max_limit=200)
 
         rows = RealtimeMonitorRepository.get_recent_risk_list(limit=limit, days=days)
-
+        print([row.risk_level for row in rows])
         result = []
         seen_report_ids = set()
 
