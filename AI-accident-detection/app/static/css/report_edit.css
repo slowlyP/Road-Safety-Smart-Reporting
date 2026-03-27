@@ -1,66 +1,90 @@
-/* ===== 전체 배경 ===== */
+/* ========================================
+   내 신고 수정 - 다크 대시보드 톤
+======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background: #f6f6f8 !important;
+  margin: 0;
+  color: #ffffff;
+  font-family: "Pretendard", "Malgun Gothic", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 24%),
+    radial-gradient(circle at top right, rgba(255, 122, 69, 0.08), transparent 24%),
+    linear-gradient(180deg, #050d19 0%, #091120 40%, #0a1425 100%) !important;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
 }
 
 /* ===== 페이지 ===== */
 .edit-page {
-  max-width: 1280px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 22px;
+  padding: 34px 24px 72px;
 }
 
 /* ===== 헤더 ===== */
 .edit-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 18px;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .edit-page-title {
   margin: 0;
-  font-size: 30px;
-  font-weight: 800;
-  color: #111827;
+  font-size: 2.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
 }
 
 .edit-page-subtitle {
-  margin: 8px 0 0;
-  font-size: 14px;
-  color: #8b8f97;
+  margin: 10px 0 0;
+  font-size: 0.96rem;
+  color: #9eb2d4;
+  line-height: 1.7;
 }
 
-/* ===== 뒤로가기 버튼 ===== */
+/* ===== 상단 버튼 ===== */
 .back-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 108px;
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dbe7f8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.92rem;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
 
-  min-width: 96px;
-  height: 42px;
-  padding: 0 18px;
-
-  border-radius: 12px;
-  background: #181a38;
-  color: #ffffff;
-
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 /* ===== 카드 ===== */
 .edit-card {
-  background: #ffffff;
-  border: 1px solid #ececec;
-  border-radius: 18px;
-
-  padding: 28px;
-
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-  transition: 0.2s ease;
+  background: rgba(20, 28, 45, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  padding: 30px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  transition: all 0.2s ease;
 }
 
 .edit-card:hover {
@@ -73,255 +97,142 @@ body {
 }
 
 .edit-form-group {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 .edit-label {
   display: block;
-
-  margin-bottom: 8px;
-
-  font-size: 14px;
-  font-weight: 700;
-  color: #374151;
+  margin-bottom: 10px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #dbe7f8;
+  letter-spacing: -0.01em;
 }
 
 /* ===== 입력창 ===== */
 .edit-input,
 .edit-textarea {
   width: 100%;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-
-  background: #ffffff;
-  font-size: 14px;
-  color: #111827;
-
-  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
   box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .edit-input {
-  height: 46px;
-  padding: 0 14px;
+  height: 50px;
+  padding: 0 16px;
+  font-size: 0.95rem;
 }
 
 .edit-textarea {
-  min-height: 160px;
-  padding: 14px;
-
+  min-height: 180px;
+  padding: 16px;
   resize: vertical;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 0.95rem;
 }
 
 .edit-input::placeholder,
 .edit-textarea::placeholder {
-  color: #9ca3af;
+  color: #7f93b3;
 }
 
 .edit-input:focus,
 .edit-textarea:focus {
-  border-color: #f97316;
   outline: none;
-
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  border-color: rgba(255, 122, 69, 0.65);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 4px rgba(255, 122, 69, 0.12);
 }
 
-/* ===== 기존 첨부파일 ===== */
+/* ===== 읽기 전용 박스 ===== */
+.edit-readonly-box {
+  min-height: 50px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #dbe7f8;
+}
+
+/* ===== 기존 첨부파일 미리보기 ===== */
 .edit-file-preview {
   width: 100%;
-  min-height: 260px;
-
+  min-height: 280px;
   margin-top: 10px;
   padding: 20px;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: #f9fafb;
-
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
   justify-content: center;
-
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px #e5e7eb;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .edit-file-preview-item {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .edit-image-file {
-  max-width: 100%;
-  max-height: 420px;
-
-  border-radius: 12px;
-  object-fit: contain;
-
   display: block;
+  max-width: 100%;
+  max-height: 460px;
+  border-radius: 14px;
+  object-fit: contain;
+  background: #08111f;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .edit-video-preview {
-  width: 100%;
-  max-width: 720px;
-  max-height: 420px;
-
-  border-radius: 12px;
-  background: #000;
-
   display: block;
+  width: 100%;
+  max-width: 760px;
+  max-height: 460px;
+  border-radius: 14px;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .edit-file-empty-text {
   margin: 0;
-
-  font-size: 15px;
-  font-weight: 600;
-  color: #6b7280;
-
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #8ea5c8;
   text-align: center;
 }
 
 .edit-file-link {
-  display: inline-block;
-
-  padding: 10px 16px;
-
-  border-radius: 10px;
-  background: #181a38;
-  color: #fff;
-
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.edit-file-link:hover {
-  background: #111327;
-}
-
-/* ===== 파일 업로드 ===== */
-.edit-file-input {
-  width: 100%;
-  padding: 12px;
-
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-
-  background: #ffffff;
-  font-size: 14px;
-  color: #374151;
-
-  box-sizing: border-box;
-}
-
-.edit-file-input:focus {
-  border-color: #f97316;
-  outline: none;
-
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
-}
-
-.edit-file-help {
-  margin-top: 8px;
-
-  font-size: 13px;
-  color: #9aa1ac;
-
-  line-height: 1.5;
-}
-
-/* ===== 버튼 ===== */
-.edit-form-buttons {
-  margin-top: 30px;
-
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-
-  flex-wrap: wrap;
-}
-
-/* 저장 버튼 */
-.save-btn {
-  min-width: 110px;
-  height: 44px;
-  padding: 0 18px;
-
-  border: none;
-  border-radius: 10px;
-
-  background: #f97316;
-  color: #ffffff;
-
-  font-size: 15px;
-  font-weight: 700;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.save-btn:hover {
-  background: #ea580c;
-  transform: translateY(-1px);
-}
-
-/* 취소 버튼 */
-.cancel-btn {
-  min-width: 110px;
-  height: 44px;
-  padding: 0 18px;
-
-  border-radius: 10px;
-  background: #e5e7eb;
-  color: #374151;
-
-  font-size: 15px;
-  font-weight: 700;
-
-  text-decoration: none;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
+  padding: 11px 18px;
+  border-radius: 12px;
+  background: rgba(255, 122, 69, 0.14);
+  color: #ff9a74;
+  border: 1px solid rgba(255, 122, 69, 0.24);
+  font-size: 0.9rem;
+  font-weight: 700;
   transition: all 0.2s ease;
 }
 
-.cancel-btn:hover {
-  background: #d1d5db;
+.edit-file-link:hover {
+  background: rgba(255, 122, 69, 0.2);
   transform: translateY(-1px);
 }
 
-/* ===== 모바일 ===== */
-@media (max-width: 768px) {
-  .edit-file-preview {
-    min-height: 200px;
-    padding: 12px;
-  }
-
-  .edit-image-file,
-  .edit-video-preview {
-    max-height: 260px;
-  }
-
-  .edit-form-buttons {
-    justify-content: stretch;
-  }
-
-  .save-btn,
-  .cancel-btn {
-    width: 100%;
-  }
-}
-
-/* ===== 파일 업로드 커스텀 ===== */
-
+/* ===== 파일 업로드 ===== */
 .edit-file-upload-wrap {
   display: flex;
   align-items: center;
@@ -333,54 +244,113 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  min-width: 120px;
-  height: 44px;
-  padding: 0 16px;
-
-  border-radius: 10px;
-  background: #181a38;
+  min-width: 126px;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff6a3d, #ff4f1f);
   color: #ffffff;
-
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 800;
   cursor: pointer;
-
   transition: all 0.2s ease;
+  box-shadow: 0 10px 20px rgba(255, 106, 61, 0.24);
 }
 
 .edit-file-upload-btn:hover {
-  background: #111327;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(255, 106, 61, 0.32);
 }
 
 .edit-file-name {
-  font-size: 14px;
+  font-size: 0.92rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #9eb2d4;
+  word-break: break-all;
 }
 
-/* 기존 input 숨기기 */
 .edit-file-input {
   position: absolute;
   left: -9999px;
 }
 
-/* ===== AI 분석 표시 박스 ===== */
-.edit-readonly-box {
-  height: 46px;
-  padding: 0 14px;
-  display: flex;
-  align-items: center;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+.edit-file-help {
+  margin-top: 10px;
+  font-size: 0.84rem;
+  color: #7f93b3;
+  line-height: 1.6;
 }
 
-/* ===== 토스트 알림 ===== */
+/* ===== 비활성화 버튼 ===== */
+.delete-file-btn:disabled {
+  background: rgba(255, 255, 255, 0.04);
+  color: #6f83a5;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.edit-file-upload-btn.disabled {
+  background: rgba(255, 255, 255, 0.04);
+  color: #6f83a5;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.edit-file-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===== 하단 버튼 ===== */
+.edit-form-buttons {
+  margin-top: 34px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.save-btn,
+.cancel-btn {
+  min-width: 118px;
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 14px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.save-btn {
+  border: none;
+  background: linear-gradient(135deg, #ff6a3d, #ff4f1f);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(255, 106, 61, 0.24);
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(255, 106, 61, 0.32);
+}
+
+.cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dbe7f8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ===== 토스트 ===== */
 .toast-message {
   position: fixed;
   top: 24px;
@@ -389,24 +359,32 @@ body {
   min-width: 260px;
   max-width: 360px;
   padding: 14px 18px;
-  border-radius: 12px;
+  border-radius: 14px;
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  font-size: 0.9rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
   animation: toastFadeIn 0.3s ease, toastFadeOut 0.3s ease 2.7s forwards;
+  backdrop-filter: blur(8px);
 }
 
 .toast-success {
-  background: #16a34a;
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.24);
 }
 
 .toast-error {
-  background: #dc2626;
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.24);
 }
 
 .toast-info {
-  background: #2563eb;
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.24);
 }
 
 @keyframes toastFadeIn {
@@ -414,7 +392,6 @@ body {
     opacity: 0;
     transform: translateY(-10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -426,65 +403,59 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-
   to {
     opacity: 0;
     transform: translateY(-10px);
   }
 }
 
-/* ===== AI 분석 로딩 모달 (신고하기 report.css와 동일 게이지) ===== */
+/* ===== AI 분석 로딩 모달 ===== */
 .loading-modal-overlay {
-  display: none; /* 기본은 숨김 */
+  display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(5px);
+  inset: 0;
+  background: rgba(2, 8, 18, 0.84);
+  backdrop-filter: blur(6px);
   justify-content: center;
   align-items: center;
   z-index: 10000;
 }
 
 .loading-modal-content {
-  width: 400px;
-  padding: 50px 30px;
-  background: #1a1a1a;
-  border-radius: 20px;
-  border: 2px solid #FF6B00;
-  box-shadow: 0 10px 30px rgba(255, 107, 0, 0.3);
+  width: min(420px, calc(100% - 32px));
+  padding: 44px 28px;
+  background: rgba(20, 28, 45, 0.96);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 122, 69, 0.28);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.36);
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
 .loading-modal-content h3 {
-  margin: 0 0 15px 0;
-  color: #FF6B00;
-  font-size: 24px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  margin: 0 0 14px;
+  color: #ff8a63;
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
 .loading-modal-content p.desc {
-  font-size: 15px;
-  color: #aaa;
-  margin-bottom: 40px;
-  font-weight: 300;
+  font-size: 0.92rem;
+  color: #8ea5c8;
+  margin-bottom: 36px;
+  line-height: 1.7;
 }
 
-/* 자동차 게이지 트랙 */
 .car-track {
   position: relative;
   width: 100%;
   height: 10px;
-  background: #333;
-  border-radius: 10px;
-  margin: 60px 0 30px 0;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  margin: 60px 0 30px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
 .car-gauge-bar {
@@ -493,9 +464,9 @@ body {
   top: 0;
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #FF6B00, #FF9F43);
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+  background: linear-gradient(90deg, #ff6b00, #ff9f43);
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.45);
   transition: width 0.3s ease-out;
 }
 
@@ -520,28 +491,35 @@ body {
   transition: left 0.3s ease-out;
   z-index: 3;
   transform: scaleX(1);
-  filter: drop-shadow(0 0 5px rgba(255, 107, 0, 0.6));
+  filter: drop-shadow(0 0 5px rgba(255, 107, 0, 0.55));
 }
 
 #progressText {
-  font-size: 36px;
+  font-size: 2.1rem;
   font-weight: 900;
-  color: white;
+  color: #ffffff;
   margin: 0;
-  letter-spacing: -1px;
+  letter-spacing: -0.05em;
 }
 
 .completed-label {
-  font-size: 12px;
-  color: #666;
+  font-size: 0.72rem;
+  color: #8ea5c8;
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-top: -5px;
+  margin-top: -2px;
+}
+
+#loadingStatus {
+  transition: all 0.5s ease-in-out;
+  min-height: 1.5em;
+  color: #ff8a63;
+  font-weight: 600;
 }
 
 @keyframes pulse {
   0% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.55; }
   100% { opacity: 1; }
 }
 
@@ -550,9 +528,63 @@ body {
   margin-right: 8px;
 }
 
-#loadingStatus {
-  transition: all 0.5s ease-in-out;
-  min-height: 1.5em;
-  color: #FF6B00;
-  font-weight: 500;
+/* ===== 반응형 ===== */
+@media (max-width: 1024px) {
+  .edit-page {
+    padding: 28px 18px 56px;
+  }
+}
+
+@media (max-width: 768px) {
+  .edit-card {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .edit-page-title {
+    font-size: 1.8rem;
+  }
+
+  .edit-file-preview {
+    min-height: 220px;
+    padding: 14px;
+  }
+
+  .edit-image-file,
+  .edit-video-preview {
+    max-height: 280px;
+  }
+
+  .edit-form-buttons {
+    justify-content: stretch;
+  }
+
+  .save-btn,
+  .cancel-btn,
+  .back-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-page {
+    padding: 22px 14px 48px;
+  }
+
+  .edit-page-title {
+    font-size: 1.55rem;
+  }
+
+  .edit-page-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .edit-input,
+  .edit-readonly-box {
+    height: 46px;
+  }
+
+  .edit-textarea {
+    min-height: 150px;
+  }
 }

@@ -70,7 +70,7 @@ class ReportService:
             "has_detection": has_detection
         }
 
-    @staticmethod
+    @staticmethod                               # 🔹 내 신고 수정하기
     def update_my_report(user_id, report_id, title, location_text, content, new_file, delete_file):
         try:
             report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
@@ -229,27 +229,57 @@ class ReportService:
             print(f"🔥 서버 오류: {e}")
             return False, f"서버 오류: {str(e)}"
 
+
     @staticmethod
-    def delete_my_report(user_id, report_id):
-        try:
-            report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
+    def delete_my_report(user_id, report_id):                        # 🔹 내 신고 삭제하기
+         try:
+             report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
 
-            if not report:
-                return False
+             if not report:
+                 print("[DELETE] 신고 없음")
+                 return False
 
-            if report_file:
-                full_path = os.path.join("app", "static", report_file.file_path.replace("static/", ""))
-                if os.path.exists(full_path):
-                    os.remove(full_path)
+             # 1. Detection 먼저 삭제
+             detections = Detection.query.filter_by(report_id=report.id).all()
+             detection_ids = [d.id for d in detections]
 
-                ReportRepository.deactivate_report_file(report_file)
+             # alerts 테이블이 detection_id를 참조하면 먼저 정리
+             if detection_ids:
+                 from sqlalchemy import text
+                 db.session.execute(
+                     text("DELETE FROM alerts WHERE detection_id IN :ids"),
+                     {"ids": tuple(detection_ids)}
+                 )
 
-            Detection.query.filter_by(report_id=report.id).delete()
-            ReportRepository.delete_report(report)
-            ReportRepository.commit()
+             Detection.query.filter_by(report_id=report.id).delete()
+             db.session.flush()
 
-            return True
+             # 2. 상태 변경 로그 삭제
+             ReportStatusLog.query.filter_by(report_id=report.id).delete()
+             db.session.flush()
 
-        except Exception:
-            db.session.rollback()
-            return False
+             # 3. 첨부파일 비활성화 + 실제 파일 삭제
+             if report_file:
+                 full_path = os.path.join(
+                     "app",
+                     "static",
+                     report_file.file_path.replace("static/", "")
+                 )
+
+                 if os.path.exists(full_path):
+                     os.remove(full_path)
+
+                 ReportRepository.deactivate_report_file(report_file)
+                 db.session.flush()
+
+             # 4. 신고 삭제
+             ReportRepository.delete_report(report)
+             ReportRepository.commit()
+
+             print("[DELETE] 삭제 성공:", report_id)
+             return True
+
+         except Exception as e:
+             db.session.rollback()
+             print("[DELETE] 삭제 오류:", e)
+             return False
