@@ -208,8 +208,10 @@ class AdminAICompareService:
                         total_sampled_frames=sampled_frames_for_run
                     )
 
-                if success_count > 0:
+                if success_count == len(cls.MODEL_CONFIGS):
                     AiCompareRepository.update_run_status(compare_run_id, "완료")
+                elif success_count > 0:
+                    AiCompareRepository.update_run_status(compare_run_id, "부분완료")
                 else:
                     AiCompareRepository.update_run_status(compare_run_id, "실패")
 
