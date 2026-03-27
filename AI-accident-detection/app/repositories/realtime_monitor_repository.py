@@ -101,9 +101,14 @@ class RealtimeMonitorRepository:
                 Report.status.label("status"),
                 Report.created_at.label("created_at"),
                 Detection.detected_label.label("detected_label"),
-                Detection.confidence.label("confidence")
+                Detection.confidence.label("confidence"),
+                Detection.file_id.label("file_id"),
+                ReportFile.file_path.label("file_path"),
+                ReportFile.file_type.label("file_type")
             )
+
             .outerjoin(Detection, Detection.report_id == Report.id)
+            .outerjoin(ReportFile, ReportFile.id == Detection.file_id)
             .filter(Report.deleted_at.is_(None))
             .filter(Report.status.in_(RealtimeMonitorRepository.MAP_VISIBLE_STATUSES))
             .filter(Report.risk_level.in_(RealtimeMonitorRepository.TARGET_RISK_LEVELS))
