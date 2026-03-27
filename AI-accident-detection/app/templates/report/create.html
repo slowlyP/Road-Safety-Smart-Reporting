@@ -74,6 +74,7 @@
 {# 하드코딩된 키 대신 서버에서 넘겨준 google_maps_api_key 변수를 사용합니다 #}
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap"></script>
 
+
 <div id="loadingModal" class="loading-modal-overlay">
     <div class="loading-modal-content">
         <div style="position: relative; z-index: 1;">
@@ -100,7 +101,12 @@
             
             <p id="progressText">0%</p>
             <p class="completed-label">COMPLETED</p>
+
+            <p class="cancel-warning" style="color: #FF4D4D; font-size: 0.85rem; margin-top: 15px; font-weight: 500; opacity: 0.9;">
+                <i class="fa-solid fa-circle-exclamation"></i> 새로고침 시 신고가 취소됩니다
+            </p>
         </div>
     </div>
 </div>
+
 {% endblock %}
