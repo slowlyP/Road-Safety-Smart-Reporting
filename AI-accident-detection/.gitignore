@@ -1,26 +1,49 @@
-# Python cache
+# =========================
+# 🐍 Python
+# =========================
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 
-# Virtual environment
+# =========================
+# 🧪 Virtual Environment
+# =========================
 .venv/
 venv/
+env/
+ENV/
 
-# IDE
+# =========================
+# 🛠 IDE / Editor
+# =========================
 .idea/
 .vscode/
+*.swp
+*.swo
 
-# OS
+# =========================
+# 💻 OS
+# =========================
 .DS_Store
 Thumbs.db
 
-# Environment files
+# =========================
+# 🔐 Environment files
+# =========================
 .env
-.env.backup
+.env.*
 
-# Upload files
-app/static/uploads/
 
-# Model weights
-yolov8n.pt
+# =========================
+# 🤖 AI Model files
+# =========================
+*.pt
+*.pth
+*.onnx
+
+
+# =========================
+# 🧾 Logs
+# =========================
+*.log
+
+
