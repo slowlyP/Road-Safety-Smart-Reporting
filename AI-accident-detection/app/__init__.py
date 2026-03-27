@@ -69,6 +69,7 @@ def create_app():
         """
         is_logged_in = "user_id" in session
         is_admin = session.get("role") == "admin"
+        user_name = session.get("name")
 
         admin_pending_report_count = 0
         admin_pending_role_count = 0
@@ -89,6 +90,7 @@ def create_app():
         return {
             "is_logged_in": is_logged_in,
             "is_admin": is_admin,
+            "user_name": user_name,
             "admin_pending_report_count": admin_pending_report_count,
             "admin_pending_role_count": admin_pending_role_count
         }

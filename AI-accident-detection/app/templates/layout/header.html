@@ -11,7 +11,6 @@
         <li><a href="{{ url_for('main.index') }}#feature">기능</a></li>
         <li><a href="{{ url_for('main.index') }}#tech">기술</a></li>
         <li><a href="{{ url_for('main.index') }}#alert">알림</a></li>
-        <li><a href="{{ url_for('main.index') }}#contact">문의</a></li>
         <li>
           <a href="{{ url_for('realtime_monitor.realtime_monitor_page') }}">
             탐지 현황
@@ -31,6 +30,7 @@
 
     <div class="header-actions">
       {% if is_logged_in %}
+        <span class="user-name">{{ user_name }}님</span>
         <a href="{{ url_for('report_list.my_reports_page') }}" class="btn btn-outline">마이페이지</a>
         <a href="{{ url_for('auth.logout') }}" class="btn btn-primary">로그아웃</a>
       {% else %}
