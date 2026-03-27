@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.backup
+
+# Upload files
+app/static/uploads/
+
+# Model weights
+yolov8n.pt
+AI-accident-detection/yolov8n.pt
+
+# AI model weights
+*.pt
+*.pth
+*.onnx
+ai/models/

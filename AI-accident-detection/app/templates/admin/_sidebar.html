@@ -1,0 +1,86 @@
+{% set endpoint = request.endpoint or '' %}
+
+<aside class="admin-sidebar">
+
+  <div>
+    <div class="admin-sidebar-header">
+      <h2>관리자</h2>
+    </div>
+
+    <nav class="admin-nav">
+      <ul>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin.dashboard') }}"
+            class="{% if endpoint == 'admin.dashboard' %}active{% endif %}"
+          >
+            대시보드
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_user.user_list') }}"
+            class="{% if endpoint.startswith('admin_user.') and not endpoint.startswith('admin_user.role_request') %}active{% endif %}"
+          >
+            회원 관리
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_user.role_request_list') }}"
+            class="{% if endpoint.startswith('admin_user.role_request') %}active{% endif %}"
+          >
+            <span>권한 신청 관리</span>
+            {% if admin_pending_role_count > 0 %}
+              <span class="admin-side-badge">{{ admin_pending_role_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_report.report_list') }}"
+            class="{% if endpoint.startswith('admin_report.') %}active{% endif %}"
+          >
+            <span>신고 관리</span>
+            {% if admin_pending_report_count > 0 %}
+              <span class="admin-side-badge">{{ admin_pending_report_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+
+      <!-- 관리자 사이드바에 "실시간 위험" 이라는 탭 구현 -->
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_realtime_alert.realtime_alert_page') }}"
+            class="{% if endpoint.startswith('admin_realtime_alert.') %}active{% endif %} admin-alert-link"
+          >
+            <span>실시간 위험 알림</span>
+            <span id="realtime-alert-badge" class="realtime-alert-badge">0</span>
+          </a>
+        </li>
+      <!-- 관리자 사이드바에 "실시간 위험" 이라는 탭 구현 종료 범위 -->
+
+        <li class="admin-nav-item">
+          <a
+            href="{{ url_for('admin_ai.summary') }}"
+            class="{% if endpoint.startswith('admin_ai.') %}active{% endif %}"
+          >
+            AI 분석 대시보드
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+  </div>
+
+  <div class="admin-sidebar-footer">
+    <a href="{{ url_for('main.index') }}" class="admin-back-link">
+      메인으로 돌아가기
+    </a>
+  </div>
+
+</aside>
