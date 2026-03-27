@@ -1,8 +1,7 @@
 let realtimeMonitorMap = null;
 let realtimeMonitorInfoWindow = null;
 let realtimeMonitorMarkers = [];
-let realtimeDirectionsService = null;
-let realtimeDirectionsRenderer = null;
+let realtimeRoutePolyline = null;
 
 let ALL_MAP_POINTS = [];
 let ALL_RISK_LIST = [];
@@ -15,6 +14,9 @@ let CURRENT_SORT_TYPE = "risk_desc";
 let CURRENT_ROUTE_ACTIVE = false;
 let CURRENT_ROUTE_POINTS = [];
 let CURRENT_ROUTE_RADIUS_KM = 0.5;
+
+let CURRENT_VISIBLE_DAYS = 180;
+let HAS_INITIAL_MAP_FIT = false;
 
 // 자동완성 관련 상태
 let ORIGIN_AUTOCOMPLETE = null;
@@ -52,7 +54,31 @@ async function fetchJson(url) {
         }
     });
 
-    return await response.json();
+    let json = null;
+    try {
+        json = await response.json();
+    } catch (e) {
+        json = null;
+    }
+
+    if (!response.ok) {
+        const message = json?.message || `HTTP ${response.status}`;
+        throw new Error(message);
+    }
+
+    return json;
+}
+
+function buildApiUrl(baseUrl, params = {}) {
+    const url = new URL(baseUrl, window.location.origin);
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            url.searchParams.set(key, value);
+        }
+    });
+
+    return url.toString();
 }
 
 function escapeHtml(value) {
@@ -121,7 +147,6 @@ function sortRiskItems(items) {
             return parseConfidence(b.confidence) - parseConfidence(a.confidence);
         }
 
-        // 기본값: 위험도 높은 순
         const riskDiff = getRiskPriority(b.risk_level) - getRiskPriority(a.risk_level);
         if (riskDiff !== 0) return riskDiff;
 
@@ -241,8 +266,9 @@ function clearRoute() {
     if (originInput) originInput.value = "";
     if (destinationInput) destinationInput.value = "";
 
-    if (realtimeDirectionsRenderer) {
-        realtimeDirectionsRenderer.setDirections({ routes: [] });
+    if (realtimeRoutePolyline) {
+        realtimeRoutePolyline.setMap(null);
+        realtimeRoutePolyline = null;
     }
 
     const title = document.getElementById("risk-list-title");
@@ -458,8 +484,12 @@ function updateFilterStatus() {
     statusEl.textContent = `${nearbyText} ${riskText} 표시하고 있습니다.${routeText}${sortText}`;
 }
 
-function renderMapPoints(points) {
+function renderMapPoints(points, options = {}) {
     if (!realtimeMonitorMap) return;
+
+    const preserveView = options.preserveView ?? true;
+    const currentCenter = preserveView ? realtimeMonitorMap.getCenter() : null;
+    const currentZoom = preserveView ? realtimeMonitorMap.getZoom() : null;
 
     clearMarkers();
 
@@ -516,7 +546,11 @@ function renderMapPoints(points) {
         validCount += 1;
     }
 
-    if (validCount > 0) {
+    if (validCount === 0) {
+        return;
+    }
+
+    if (!HAS_INITIAL_MAP_FIT) {
         realtimeMonitorMap.fitBounds(bounds);
 
         const listener = google.maps.event.addListener(realtimeMonitorMap, "idle", function () {
@@ -525,6 +559,14 @@ function renderMapPoints(points) {
             }
             google.maps.event.removeListener(listener);
         });
+
+        HAS_INITIAL_MAP_FIT = true;
+        return;
+    }
+
+    if (preserveView && currentCenter && currentZoom) {
+        realtimeMonitorMap.setCenter(currentCenter);
+        realtimeMonitorMap.setZoom(currentZoom);
     }
 }
 
@@ -548,11 +590,11 @@ function renderRiskList(items) {
     });
 }
 
-function applyFiltersAndRender() {
+function applyFiltersAndRender(options = {}) {
     const filteredMapPoints = getFilteredMapPoints();
     const filteredRiskList = getFilteredRiskList();
 
-    renderMapPoints(filteredMapPoints);
+    renderMapPoints(filteredMapPoints, options);
     renderRiskList(filteredRiskList);
     updateFilterStatus();
 
@@ -566,7 +608,12 @@ function applyFiltersAndRender() {
 async function loadMapPoints() {
     if (!window.REALTIME_MONITOR_CONFIG) return;
 
-    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.mapPointsApiUrl);
+    const url = buildApiUrl(window.REALTIME_MONITOR_CONFIG.mapPointsApiUrl, {
+        days: CURRENT_VISIBLE_DAYS,
+        limit: 300
+    });
+
+    const result = await fetchJson(url);
     if (!result.success) return;
 
     ALL_MAP_POINTS = result.items || [];
@@ -575,7 +622,11 @@ async function loadMapPoints() {
 async function loadSummaryCards() {
     if (!window.REALTIME_MONITOR_CONFIG) return;
 
-    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.summaryApiUrl);
+    const url = buildApiUrl(window.REALTIME_MONITOR_CONFIG.summaryApiUrl, {
+        days: CURRENT_VISIBLE_DAYS
+    });
+
+    const result = await fetchJson(url);
     if (!result.success) return;
 
     const data = result.data || {};
@@ -594,15 +645,25 @@ async function loadSummaryCards() {
 async function loadRiskList() {
     if (!window.REALTIME_MONITOR_CONFIG) return;
 
-    const result = await fetchJson(window.REALTIME_MONITOR_CONFIG.riskListApiUrl);
+    const url = buildApiUrl(window.REALTIME_MONITOR_CONFIG.riskListApiUrl, {
+        days: CURRENT_VISIBLE_DAYS,
+        limit: 20
+    });
+
+    const result = await fetchJson(url);
     if (!result.success) return;
 
     ALL_RISK_LIST = result.items || [];
 }
 
-async function refreshRealtimeMonitorData() {
+async function refreshRealtimeMonitorData(options = {}) {
+    const preserveView = options.preserveView ?? true;
+    const showOverlay = options.showOverlay ?? true;
+
     try {
-        showLoading("데이터 불러오는 중...");
+        if (showOverlay) {
+            showLoading("데이터 불러오는 중...");
+        }
 
         await Promise.all([
             loadSummaryCards(),
@@ -610,11 +671,13 @@ async function refreshRealtimeMonitorData() {
             loadRiskList()
         ]);
 
-        applyFiltersAndRender();
+        applyFiltersAndRender({ preserveView });
     } catch (error) {
         console.error("탐지 현황 데이터 갱신 실패:", error);
     } finally {
-        hideLoading();
+        if (showOverlay) {
+            hideLoading();
+        }
     }
 }
 
@@ -626,7 +689,7 @@ function bindRiskFilterButtons() {
             btn.classList.add("active");
 
             CURRENT_RISK_FILTER = btn.dataset.riskFilter || "all";
-            applyFiltersAndRender();
+            applyFiltersAndRender({ preserveView: true });
         });
     });
 }
@@ -639,7 +702,7 @@ function bindRadiusSelect() {
         CURRENT_RADIUS_KM = Number(radiusSelect.value || 3);
 
         if (CURRENT_USER_POSITION) {
-            applyFiltersAndRender();
+            applyFiltersAndRender({ preserveView: true });
         }
     });
 }
@@ -650,7 +713,7 @@ function bindSortSelect() {
 
     sortSelect.addEventListener("change", () => {
         CURRENT_SORT_TYPE = sortSelect.value || "risk_desc";
-        applyFiltersAndRender();
+        applyFiltersAndRender({ preserveView: true });
     });
 }
 
@@ -660,14 +723,14 @@ function bindNearbyButtons() {
 
     if (findBtn) {
         findBtn.addEventListener("click", () => {
-            alert("현재 위치 기반 기능은 API 권한 연동 후 사용할 수 있습니다. 오늘 시연에서는 전체 보기, 위험도 필터, 경로 위험 보기를 중심으로 확인해주세요.");
+            alert("현재 위치 기반 기능은 API 권한 연동 후 사용할 수 있습니다. 지금은 전체 보기, 위험도 필터, 경로 위험 보기를 중심으로 확인해주세요.");
         });
     }
 
     if (resetBtn) {
         resetBtn.addEventListener("click", () => {
             CURRENT_USER_POSITION = null;
-            applyFiltersAndRender();
+            applyFiltersAndRender({ preserveView: true });
         });
     }
 }
@@ -685,7 +748,7 @@ function initRouteAutocomplete() {
 
         if (!ROUTE_AUTOCOMPLETE_NOTICE_SHOWN) {
             ROUTE_AUTOCOMPLETE_NOTICE_SHOWN = true;
-            alert("현재 자동완성 기능은 API 권한 제한으로 비활성화되어 있습니다. 오늘 시연에서는 출발지와 도착지를 직접 입력해 경로 탐색을 시도할 수 있습니다.");
+            alert("현재 자동완성 기능을 사용할 수 없습니다. Google Maps Places API 설정을 확인해주세요.");
         }
         return;
     }
@@ -704,43 +767,97 @@ function initRouteAutocomplete() {
 
     ORIGIN_AUTOCOMPLETE.addListener("place_changed", () => {
         SELECTED_ORIGIN_PLACE = ORIGIN_AUTOCOMPLETE.getPlace();
+        console.log("[Route] 출발지 선택:", SELECTED_ORIGIN_PLACE);
     });
 
     DESTINATION_AUTOCOMPLETE.addListener("place_changed", () => {
         SELECTED_DESTINATION_PLACE = DESTINATION_AUTOCOMPLETE.getPlace();
+        console.log("[Route] 도착지 선택:", SELECTED_DESTINATION_PLACE);
     });
 
     originInput.addEventListener("input", () => {
-        SELECTED_ORIGIN_PLACE = null;
+        if (!originInput.value.trim()) {
+            SELECTED_ORIGIN_PLACE = null;
+        }
     });
 
     destinationInput.addEventListener("input", () => {
-        SELECTED_DESTINATION_PLACE = null;
+        if (!destinationInput.value.trim()) {
+            SELECTED_DESTINATION_PLACE = null;
+        }
     });
 }
 
-function buildRouteRequestValue(inputValue, selectedPlace) {
-    if (selectedPlace && selectedPlace.place_id) {
-        return {
-            placeId: selectedPlace.place_id
-        };
+function drawKakaoRoutePolyline(path) {
+    if (!realtimeMonitorMap) return;
+
+    if (realtimeRoutePolyline) {
+        realtimeRoutePolyline.setMap(null);
+        realtimeRoutePolyline = null;
     }
 
-    return inputValue;
+    if (!Array.isArray(path) || path.length === 0) {
+        return;
+    }
+
+    realtimeRoutePolyline = new google.maps.Polyline({
+        path: path,
+        geodesic: true,
+        strokeColor: "#2563eb",
+        strokeOpacity: 0.9,
+        strokeWeight: 6
+    });
+
+    realtimeRoutePolyline.setMap(realtimeMonitorMap);
 }
 
-function validateRoutePlace(inputValue, selectedPlace, label) {
+function updateKakaoRouteMeta(distanceM, durationS) {
+    const subtitle = document.getElementById("risk-list-subtitle");
+    if (!subtitle) return;
+
+    const distanceKm = (Number(distanceM || 0) / 1000).toFixed(1);
+    const durationMin = Math.round(Number(durationS || 0) / 60);
+
+    subtitle.textContent = `입력한 이동 경로 주변의 위험 지점을 표시하고 있습니다. 예상 거리 ${distanceKm}km · 예상 시간 ${durationMin}분`;
+}
+
+function validateRouteInput(inputValue, label) {
     if (!inputValue) {
         return `${label}를 입력해주세요.`;
     }
+    return null;
+}
 
-    if (ROUTE_AUTOCOMPLETE_AVAILABLE) {
-        if (!selectedPlace || !selectedPlace.place_id) {
-            return `${label}는 자동완성 목록에서 정확한 장소를 선택해주세요. 예: 강남역, 잠실역, 서울특별시 중구 세종대로 110`;
-        }
+async function requestKakaoRoute(originPlace, destinationPlace) {
+    if (!window.REALTIME_MONITOR_CONFIG?.kakaoRouteApiUrl) {
+        throw new Error("카카오 경로 API URL이 설정되지 않았습니다.");
     }
 
-    return null;
+    if (!originPlace?.geometry?.location || !destinationPlace?.geometry?.location) {
+        throw new Error("출발지/도착지 geometry 정보가 없습니다.");
+    }
+
+    const originLat = originPlace.geometry.location.lat();
+    const originLng = originPlace.geometry.location.lng();
+    const destLat = destinationPlace.geometry.location.lat();
+    const destLng = destinationPlace.geometry.location.lng();
+
+    const url = buildApiUrl(window.REALTIME_MONITOR_CONFIG.kakaoRouteApiUrl, {
+        origin_lat: originLat,
+        origin_lng: originLng,
+        dest_lat: destLat,
+        dest_lng: destLng
+    });
+
+    console.log("[KakaoRoute] 요청 URL:", url);
+
+    const result = await fetchJson(url);
+
+    if (!result.success) {
+        throw new Error(result.message || "카카오 경로 조회 실패");
+    }
+
+    return result.data;
 }
 
 function bindRouteRiskButtons() {
@@ -756,70 +873,87 @@ function bindRouteRiskButtons() {
             const originValue = originInput?.value?.trim() || "";
             const destinationValue = destinationInput?.value?.trim() || "";
 
-            const originError = validateRoutePlace(originValue, SELECTED_ORIGIN_PLACE, "출발지");
+            const originError = validateRouteInput(originValue, "출발지");
             if (originError) {
                 alert(originError);
                 originInput?.focus();
                 return;
             }
 
-            const destinationError = validateRoutePlace(destinationValue, SELECTED_DESTINATION_PLACE, "도착지");
+            const destinationError = validateRouteInput(destinationValue, "도착지");
             if (destinationError) {
                 alert(destinationError);
                 destinationInput?.focus();
                 return;
             }
 
-            if (!ROUTE_AUTOCOMPLETE_AVAILABLE) {
-                const shouldContinue = confirm(
-                    "현재 자동완성 API가 제한된 상태입니다.\n그래도 직접 입력한 출발지/도착지로 경로 탐색을 시도하시겠습니까?"
-                );
-
-                if (!shouldContinue) {
-                    return;
-                }
+            if (!SELECTED_ORIGIN_PLACE?.geometry?.location) {
+                alert("출발지는 자동완성 목록에서 정확히 선택해주세요.");
+                originInput?.focus();
+                return;
             }
 
-            if (!realtimeDirectionsService || !realtimeDirectionsRenderer) {
-                alert("경로 서비스를 초기화하지 못했습니다.");
+            if (!SELECTED_DESTINATION_PLACE?.geometry?.location) {
+                alert("도착지는 자동완성 목록에서 정확히 선택해주세요.");
+                destinationInput?.focus();
+                return;
+            }
+
+            const originLat = SELECTED_ORIGIN_PLACE.geometry.location.lat();
+            const originLng = SELECTED_ORIGIN_PLACE.geometry.location.lng();
+            const destLat = SELECTED_DESTINATION_PLACE.geometry.location.lat();
+            const destLng = SELECTED_DESTINATION_PLACE.geometry.location.lng();
+
+            if (
+                Math.abs(originLat - destLat) < 0.00001 &&
+                Math.abs(originLng - destLng) < 0.00001
+            ) {
+                alert("출발지와 도착지가 동일합니다. 서로 다른 위치를 선택해주세요.");
                 return;
             }
 
             try {
-                showLoading("경로 분석 중...");
+                showLoading("카카오 경로 분석 중...");
 
-                const routeRequest = {
-                    origin: buildRouteRequestValue(originValue, SELECTED_ORIGIN_PLACE),
-                    destination: buildRouteRequestValue(destinationValue, SELECTED_DESTINATION_PLACE),
-                    travelMode: google.maps.TravelMode.DRIVING
-                };
+                console.log("[KakaoRoute] 출발지:", SELECTED_ORIGIN_PLACE);
+                console.log("[KakaoRoute] 도착지:", SELECTED_DESTINATION_PLACE);
 
-                const result = await realtimeDirectionsService.route(routeRequest);
+                const routeData = await requestKakaoRoute(
+                    SELECTED_ORIGIN_PLACE,
+                    SELECTED_DESTINATION_PLACE
+                );
 
-                realtimeDirectionsRenderer.setDirections(result);
+                const path = routeData.path || [];
+                if (!path.length) {
+                    alert("카카오 길찾기 결과에 경로 좌표가 없습니다.");
+                    return;
+                }
 
-                const routePath = result.routes?.[0]?.overview_path || [];
-                CURRENT_ROUTE_POINTS = routePath.map((p) => ({
-                    lat: p.lat(),
-                    lng: p.lng()
+                drawKakaoRoutePolyline(path);
+
+                CURRENT_ROUTE_POINTS = path.map((p) => ({
+                    lat: Number(p.lat),
+                    lng: Number(p.lng)
                 }));
                 CURRENT_ROUTE_RADIUS_KM = radius;
                 CURRENT_ROUTE_ACTIVE = true;
 
                 const title = document.getElementById("risk-list-title");
                 const subtitle = document.getElementById("risk-list-subtitle");
-                if (title) title.textContent = "경로 위험 리스트";
-                if (subtitle) subtitle.textContent = "입력한 이동 경로 주변의 위험 지점만 표시하고 있습니다.";
 
-                applyFiltersAndRender();
-            } catch (error) {
-                console.error("경로 조회 실패:", error);
-
-                if (!ROUTE_AUTOCOMPLETE_AVAILABLE) {
-                    alert("경로를 찾지 못했습니다. 현재는 자동완성 API 없이 수동 입력으로 시도하는 상태이므로, 역명·도로명주소·건물명처럼 더 정확한 위치로 다시 입력해주세요.");
-                } else {
-                    alert("경로를 찾지 못했습니다. 자동완성 목록에서 출발지와 도착지를 다시 선택해주세요.");
+                if (title) {
+                    title.textContent = "경로 위험 리스트";
                 }
+
+                if (subtitle) {
+                    subtitle.textContent = "입력한 이동 경로 주변의 위험 지점만 표시하고 있습니다.";
+                }
+
+                updateKakaoRouteMeta(routeData.distance_m, routeData.duration_s);
+                applyFiltersAndRender({ preserveView: true });
+            } catch (error) {
+                console.error("[KakaoRoute] 실패:", error);
+                alert(error.message || "카카오 길찾기 조회 중 오류가 발생했습니다.");
             } finally {
                 hideLoading();
             }
@@ -829,7 +963,7 @@ function bindRouteRiskButtons() {
     if (resetBtn) {
         resetBtn.addEventListener("click", () => {
             clearRoute();
-            applyFiltersAndRender();
+            applyFiltersAndRender({ preserveView: true });
         });
     }
 }
@@ -848,20 +982,19 @@ function initRealtimeMonitorMap() {
 
     realtimeMonitorInfoWindow = new google.maps.InfoWindow();
 
-    realtimeDirectionsService = new google.maps.DirectionsService();
-    realtimeDirectionsRenderer = new google.maps.DirectionsRenderer({
-        suppressMarkers: false,
-        polylineOptions: {
-            strokeColor: "#3b82f6",
-            strokeOpacity: 0.85,
-            strokeWeight: 6
-        }
-    });
-    realtimeDirectionsRenderer.setMap(realtimeMonitorMap);
-
     initRouteAutocomplete();
-    refreshRealtimeMonitorData();
-    setInterval(refreshRealtimeMonitorData, 15000);
+
+    refreshRealtimeMonitorData({
+        preserveView: false,
+        showOverlay: true
+    });
+
+    setInterval(() => {
+        refreshRealtimeMonitorData({
+            preserveView: true,
+            showOverlay: false
+        });
+    }, 30000);
 }
 
 function getRiskDetailElements() {
@@ -1005,6 +1138,9 @@ function bindRiskDetailModalEvents() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    const configuredDays = Number(document.body?.dataset?.realtimeVisibleDays || 180);
+    CURRENT_VISIBLE_DAYS = Number.isNaN(configuredDays) ? 180 : configuredDays;
+
     bindRiskFilterButtons();
     bindRadiusSelect();
     bindSortSelect();

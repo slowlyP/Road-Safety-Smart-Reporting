@@ -5,7 +5,13 @@ from sqlalchemy.sql import func
 class AiCompareResult(db.Model):
     __tablename__ = "ai_compare_results"
 
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True, comment="비교분석 결과 ID")
+    id = db.Column(
+        db.BigInteger,
+        primary_key=True,
+        autoincrement=True,
+        comment="비교분석 결과 ID"
+    )
+
     compare_run_id = db.Column(
         db.BigInteger,
         db.ForeignKey("ai_compare_runs.id", ondelete="CASCADE"),
@@ -20,11 +26,13 @@ class AiCompareResult(db.Model):
         index=True,
         comment="모델명"
     )
+
     optimizer_name = db.Column(
         db.String(50),
         nullable=True,
         comment="옵티마이저명"
     )
+
     model_version = db.Column(
         db.String(100),
         nullable=True,
@@ -38,20 +46,61 @@ class AiCompareResult(db.Model):
         server_default="0",
         comment="총 탐지 수"
     )
+
+    detected_frame_count = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+        comment="탐지가 발생한 프레임 수"
+    )
+
     avg_confidence = db.Column(
         db.Numeric(5, 4),
         nullable=True,
         comment="평균 confidence"
     )
+
     max_confidence = db.Column(
         db.Numeric(5, 4),
         nullable=True,
         comment="최대 confidence"
     )
+
     processing_time = db.Column(
         db.Numeric(10, 4),
         nullable=True,
         comment="처리 시간(초)"
+    )
+
+    best_frame_no = db.Column(
+        db.Integer,
+        nullable=True,
+        comment="대표 프레임 번호"
+    )
+
+    best_time_sec = db.Column(
+        db.Numeric(10, 2),
+        nullable=True,
+        comment="대표 프레임 영상 시간(초)"
+    )
+
+    best_detection_count = db.Column(
+        db.Integer,
+        nullable=True,
+        comment="대표 프레임 탐지 객체 수"
+    )
+
+    best_avg_confidence = db.Column(
+        db.Numeric(5, 4),
+        nullable=True,
+        comment="대표 프레임 평균 confidence"
+    )
+
+    best_max_confidence = db.Column(
+        db.Numeric(5, 4),
+        nullable=True,
+        comment="대표 프레임 최대 confidence"
     )
 
     result_image_path = db.Column(
@@ -59,6 +108,7 @@ class AiCompareResult(db.Model):
         nullable=True,
         comment="결과 이미지 경로"
     )
+
     result_json = db.Column(
         db.JSON,
         nullable=True,
@@ -72,6 +122,7 @@ class AiCompareResult(db.Model):
         server_default="대기",
         comment="모델 결과 상태"
     )
+
     error_message = db.Column(
         db.String(255),
         nullable=True,
@@ -105,9 +156,15 @@ class AiCompareResult(db.Model):
             "optimizer_name": self.optimizer_name,
             "model_version": self.model_version,
             "total_detections": self.total_detections,
+            "detected_frame_count": self.detected_frame_count,
             "avg_confidence": float(self.avg_confidence) if self.avg_confidence is not None else None,
             "max_confidence": float(self.max_confidence) if self.max_confidence is not None else None,
             "processing_time": float(self.processing_time) if self.processing_time is not None else None,
+            "best_frame_no": self.best_frame_no,
+            "best_time_sec": float(self.best_time_sec) if self.best_time_sec is not None else None,
+            "best_detection_count": self.best_detection_count,
+            "best_avg_confidence": float(self.best_avg_confidence) if self.best_avg_confidence is not None else None,
+            "best_max_confidence": float(self.best_max_confidence) if self.best_max_confidence is not None else None,
             "result_image_path": self.result_image_path,
             "result_json": self.result_json,
             "status": self.status,

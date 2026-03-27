@@ -2,21 +2,28 @@ import os
 import cv2
 from ultralytics import YOLO, RTDETR
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+MODEL_PATHS = {
+    "image": os.path.join(BASE_DIR, "ai", "models", "best_rtdetr_adamw.pt"),
+    "video": os.path.join(BASE_DIR, "ai", "models", "best_video.pt"),
+}
+
 _model_cache = {}
 
 
-def load_model(model_name, model_path):
-    key = f"{model_name}:{model_path}"
+def get_model(model_type):
+    if model_type in _model_cache:
+        return _model_cache[model_type]
 
-    if key in _model_cache:
-        return _model_cache[key]
-
-    if model_name == "RT-DETR":
-        model = RTDETR(model_path)
+    if model_type == "image":
+        model = RTDETR(MODEL_PATHS["image"])
+    elif model_type == "video":
+        model = YOLO(MODEL_PATHS["video"])
     else:
-        model = YOLO(model_path)
+        raise ValueError(f"지원하지 않는 모델 타입입니다: {model_type}")
 
-    _model_cache[key] = model
+    _model_cache[model_type] = model
     return model
 
 
@@ -60,22 +67,12 @@ def parse_results(results, frame_no=None, time_sec=None, frame_width=None, frame
     return detections
 
 
-def run_model_inference(model_name, model_path, image_path=None, image=None, conf=0.25, imgsz=832):
-    """
-    비교분석용 단일 추론 함수
-    - image_path: 이미지 파일 경로
-    - image: cv2 frame (numpy array)
-    """
-    model = load_model(model_name, model_path)
-
-    source = image_path if image_path is not None else image
-    if source is None:
-        raise ValueError("image_path 또는 image 중 하나는 반드시 필요합니다.")
+def detect_image(image_path):
+    model = get_model("image")
 
     results = model.predict(
-        source=source,
-        conf=conf,
-        imgsz=imgsz,
+        source=image_path,
+        conf=0.25,
         save=False,
         verbose=False
     )
@@ -83,21 +80,8 @@ def run_model_inference(model_name, model_path, image_path=None, image=None, con
     return parse_results(results)
 
 
-def detect_image(model_name, model_path, image_path, conf=0.25, imgsz=832):
-    return run_model_inference(
-        model_name=model_name,
-        model_path=model_path,
-        image_path=image_path,
-        conf=conf,
-        imgsz=imgsz
-    )
-
-
-def detect_video(model_name, model_path, video_path, target_fps=5, conf=0.25, imgsz=832):
-    """
-    영상 전체를 target_fps 기준으로 샘플링 분석
-    """
-    model = load_model(model_name, model_path)
+def detect_video(video_path, target_fps=5):
+    model = get_model("video")
 
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
@@ -128,21 +112,22 @@ def detect_video(model_name, model_path, video_path, target_fps=5, conf=0.25, im
 
         results = model.predict(
             source=frame,
-            conf=conf,
-            imgsz=imgsz,
+            conf=0.25,
+            imgsz=832,
             save=False,
             verbose=False
         )
 
-        detections = parse_results(
-            results,
-            frame_no=frame_no,
-            time_sec=time_sec,
-            frame_width=frame_width,
-            frame_height=frame_height
+        all_detections.extend(
+            parse_results(
+                results,
+                frame_no=frame_no,
+                time_sec=time_sec,
+                frame_width=frame_width,
+                frame_height=frame_height
+            )
         )
 
-        all_detections.extend(detections)
         frame_no += 1
 
     cap.release()

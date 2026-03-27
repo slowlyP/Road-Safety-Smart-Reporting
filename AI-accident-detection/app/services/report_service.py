@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 from app.extensions import db
 from app.models import Report, ReportFile, Detection, ReportStatusLog
-from app.services.yolo_service import detect_image, detect_video
+from ai.inference.detector import detect_image, detect_video
 
 # [기존 추가] 실시간 위험 알림 서비스 import
 from app.services.realtime_alert_service import RealtimeAlertService
@@ -26,6 +26,7 @@ class ReportService:
 
     @staticmethod
     def process_report_submission(user_id, form_data, upload_file):
+        saved_file_path = None
         try:
             title = (form_data.get('title') or '').strip()
             if not title:
@@ -123,28 +124,38 @@ class ReportService:
 
             file_path = os.path.join(upload_folder, stored_name)
             upload_file.save(file_path)
+            saved_file_path = file_path
 
             # 영상 길이 제한 검사
             if inferred_type == '영상':
                 cap = cv2.VideoCapture(file_path)
-                if cap.isOpened():
+                if not cap.isOpened():
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    saved_file_path = None
+                    raise ValueError("영상 파일을 열 수 없습니다. 손상된 파일인지 확인해주세요.")
+
+                try:
                     fps = cap.get(cv2.CAP_PROP_FPS)
                     frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                finally:
+                    cap.release()
 
-                    if fps > 0:
-                        duration = frame_count / fps
-                        cap.release()
+                if fps <= 0 or frame_count <= 0:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    saved_file_path = None
+                    raise ValueError("영상 메타데이터를 읽을 수 없습니다. 다른 파일로 다시 시도해주세요.")
 
-                        if duration > 30:
-                            if os.path.exists(file_path):
-                                os.remove(file_path)
-
-                            raise ValueError(
-                                f"영상 길이는 30초를 초과할 수 없습니다. "
-                                f"(현재: {round(duration, 1)}초)"
-                            )
-                    else:
-                        cap.release()
+                duration = frame_count / fps
+                if duration > 30:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    saved_file_path = None
+                    raise ValueError(
+                        f"영상 길이는 30초를 초과할 수 없습니다. "
+                        f"(현재: {round(duration, 1)}초)"
+                    )
 
             # -------------------------------------------------------
             # [수정] DB에는 원본 파일명(raw_original_name) 저장
@@ -318,8 +329,18 @@ class ReportService:
 
         except ValueError as ve:
             db.session.rollback()
+            if saved_file_path and os.path.exists(saved_file_path):
+                try:
+                    os.remove(saved_file_path)
+                except Exception:
+                    pass
             raise ve
 
         except Exception as e:
             db.session.rollback()
+            if saved_file_path and os.path.exists(saved_file_path):
+                try:
+                    os.remove(saved_file_path)
+                except Exception:
+                    pass
             raise e

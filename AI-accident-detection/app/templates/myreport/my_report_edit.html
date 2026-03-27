@@ -160,4 +160,34 @@
 {% block extra_js %}
 <!-- 신고 수정 전용 JS -->
 <script src="{{ url_for('static', filename='js/my_report_edit.js') }}"></script>
+
+<div id="loadingModal" class="loading-modal-overlay">
+    <div class="loading-modal-content">
+        <div style="position: relative; z-index: 1;">
+            <h3>
+                <i class="fa-solid fa-satellite-dish pulse-icon"></i>
+                AI ANALYSIS
+            </h3>
+            
+            <p id="loadingStatus" class="desc" style="color: #FF6B00; font-weight: bold; margin-bottom: 25px; min-height: 1.2em;">
+                도로 위 위험 요소를 분석 중입니다...
+            </p>
+            
+            <div class="car-track">
+                <div id="gaugeBar" class="car-gauge-bar"></div>
+                
+                <span id="trashIcon" class="trash-item" style="left: 50%;">
+                    <img id="randomObstacle" src="" style="width: 35px; height: 35px; display: none;">
+                </span>
+                
+                <div id="carIcon" class="car-moving-icon">
+                    <img src="{{ url_for('static', filename='images/truck.png') }}" width="50">
+                </div>
+            </div>
+            
+            <p id="progressText">0%</p>
+            <p class="completed-label">COMPLETED</p>
+        </div>
+    </div>
+</div>
 {% endblock %}

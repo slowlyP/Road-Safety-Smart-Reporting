@@ -2,7 +2,7 @@
 Flask 애플리케이션을 생성하는 파일
 """
 
-from flask import Flask, session
+from flask import Flask, session, request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from .config import Config
@@ -58,10 +58,11 @@ def create_app():
     @app.context_processor
     def inject_user_state():
         """
-        모든 템플릿에서 로그인 상태 / 관리자 여부 / 관리자 사이드바 카운트를 공통 사용
+        모든 템플릿에서 로그인 상태 / 관리자 여부 / 공통 사용자 정보 / 담당자 프로필 활성화 값을 주입
         """
         is_logged_in = "user_id" in session
         is_admin = session.get("role") == "admin"
+        user_name = session.get("name")
 
         admin_pending_report_count = 0
         admin_pending_role_count = 0
@@ -79,11 +80,29 @@ def create_app():
                 RoleRequest.status == "대기"
             ).count()
 
+        endpoint = request.endpoint or ""
+        active_member = None
+
+        if endpoint.startswith("main."):
+            active_member = "kdh"
+        elif endpoint.startswith("report."):
+            active_member = "smg"
+        elif endpoint.startswith("report_list."):
+            active_member = "lhj"
+        elif endpoint.startswith("realtime_monitor."):
+            active_member = "kdk"
+        elif endpoint.startswith("admin_realtime_alert."):
+            active_member = "kdk"
+        elif endpoint.startswith("admin."):
+            active_member = "kdh"
+
         return {
             "is_logged_in": is_logged_in,
             "is_admin": is_admin,
+            "user_name": user_name,
             "admin_pending_report_count": admin_pending_report_count,
-            "admin_pending_role_count": admin_pending_role_count
+            "admin_pending_role_count": admin_pending_role_count,
+            "active_member": active_member
         }
 
     # -----------------------------
@@ -100,6 +119,10 @@ def create_app():
     from app.api.admin_realtime_alert_routes import admin_realtime_alert_bp
     from app.api.realtime_monitor_routes import realtime_monitor_bp
 
+    from app.api.kakao_navigation_routes import kakao_navigation_bp
+
+
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(report_bp)
@@ -110,6 +133,9 @@ def create_app():
     app.register_blueprint(report_list_bp)
     app.register_blueprint(admin_realtime_alert_bp)
     app.register_blueprint(realtime_monitor_bp)
+
+    app.register_blueprint(kakao_navigation_bp)
+
 
     # -----------------------------
     # 소켓 이벤트 등록
