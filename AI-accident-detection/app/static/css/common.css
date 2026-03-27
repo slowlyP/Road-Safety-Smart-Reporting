@@ -495,3 +495,136 @@ ul {
 }
 
 }
+
+.team-sidebar {
+  width: auto;
+}
+.team-sidebar > strong {
+  display: block;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: #ff6b2c;
+  margin-bottom: 16px;
+}
+
+.team-profile {
+  width: fit-content;
+  min-width: 0;
+  display: inline-flex;
+  align-self: stretch;
+  gap: 8px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.team-profile img {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.team-profile.is-active {
+  animation: bounce 1.6s infinite;
+  box-shadow: 0 10px 25px rgba(255,107,44,0.3);
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+  60% { transform: translateY(-4px); }
+}
+
+.page-with-team-sidebar {
+  width: 100%;
+  position: relative;
+}
+
+.page-content-area {
+  width: 100%;
+  min-width: 0;
+}
+
+.team-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.team-sidebar {
+  position: fixed;
+  top: 110px;
+  right: 24px;
+  width: fit-content;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 50;
+}
+
+.page-content-area {
+  width: 100%;
+  min-width: 0;
+  padding-right: 0;
+  margin-right: 0;
+}
+.team-profile img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.team-profile strong {
+  font-size: 12px !important;
+}
+
+.team-profile span {
+  font-size: 10px !important;
+}
+
+.team-profile.is-active {
+  animation: bounceProfile 1.6s ease-in-out infinite;
+  box-shadow: 0 10px 24px rgba(255, 107, 44, 0.28);
+  border-color: rgba(255, 107, 44, 0.35);
+}
+
+@keyframes bounceProfile {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .page-with-team-sidebar {
+    flex-direction: column;
+  }
+
+  .team-sidebar {
+    width: 100%;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .team-profile {
+    width: calc(50% - 7px);
+  }
+}
+
+@media (max-width: 640px) {
+  .team-profile {
+    width: 100%;
+  }
+}

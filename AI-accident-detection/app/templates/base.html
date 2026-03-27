@@ -17,16 +17,19 @@
   {% include 'layout/header.html' %}
 
   <main class="page-wrapper">
-    {% block content %}{% endblock %}
+    <div class="page-with-team-sidebar">
+      {% include 'layout/_team_sidebar.html' %}
+      <div class="page-content-area">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
   </main>
 
   {% include 'layout/footer.html' %}
 
   {% if is_logged_in and is_admin %}
-    <!-- 관리자 공통 실시간 알림 토스트 영역 -->
     <div id="realtime-alert-toast-container" class="realtime-alert-toast-container"></div>
 
-    <!-- 관리자 공통 실시간 알림 사운드 -->
     <audio
       id="sound-danger"
       src="{{ url_for('static', filename='sounds/danger.mp3') }}"

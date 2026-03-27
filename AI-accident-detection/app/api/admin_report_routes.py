@@ -148,9 +148,8 @@ def update_report_status(report_id):
 @admin_report_bp.route("/<int:report_id>/compare/run", methods=["POST"])
 def run_compare_analysis(report_id):
     """
-    관리자 비교분석 실행
+    관리자 비교분석 실행 (비동기)
     """
-
     check = _check_admin()
     if check:
         return check
@@ -158,19 +157,31 @@ def run_compare_analysis(report_id):
     admin_id = session.get("user_id")
 
     try:
-        compare_run = admin_ai_compare_service.run_compare_analysis(
+        compare_run = admin_ai_compare_service.create_compare_run_only(
             report_id=report_id,
             requested_by=admin_id
         )
+
+        admin_ai_compare_service.start_compare_analysis_async(compare_run.id)
+
         return redirect(
             url_for("admin_report.compare_detail", compare_run_id=compare_run.id)
         )
 
+
     except ValueError as e:
+
         flash(str(e), "danger")
+
         return redirect(url_for("admin_report.report_detail", report_id=report_id))
+
+
     except Exception as e:
-        flash(f"비교분석 중 오류가 발생했습니다: {str(e)}", "danger")
+
+        print("🔥 비교분석 ERROR:", e)  # 콘솔용 (중요)
+
+        flash("비교분석 중 오류가 발생했습니다. 관리자에게 문의하세요.", "danger")
+
         return redirect(url_for("admin_report.report_detail", report_id=report_id))
 
 
