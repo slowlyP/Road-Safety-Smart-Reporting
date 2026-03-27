@@ -1,21 +1,31 @@
 from flask import Blueprint, session, render_template, redirect, url_for, flash, request
 from app.services.report_list_service import ReportService
 from app.common.response import success_response, error_response
+from app.repositories.user_repository import UserRepository
 
 # 신고 목록 관련 블루프린트
 report_list_bp = Blueprint("report_list", __name__, url_prefix="/reports")
 
 
+
 @report_list_bp.route("/my-page", methods=["GET"])
 def my_reports_page():                                                # 🔹 사용자정보 불러오기
     # 세션 키 이름을 프로젝트 공통 규칙(user_id, username, email, name, role)에 맞춤
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return redirect(url_for("auth.login"))
+
+    db_user = UserRepository.get_user_by_id(user_id)
+
     user = {
-        "name": session.get("name"),
-        "username": session.get("username"),
-        "email": session.get("email"),
-        "role": session.get("role"),
-        "created_at": None
+        "name": db_user.name,
+        "username": db_user.username,
+        "email": db_user.email,
+        "role": db_user.role,
+        "created_at": db_user.created_at
     }
+
     return render_template("myreport/my_reports.html", user=user)
 
 
