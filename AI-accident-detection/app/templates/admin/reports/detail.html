@@ -25,6 +25,7 @@
       <form
         method="POST"
         action="{{ url_for('admin_report.run_compare_analysis', report_id=report.id) }}"
+        id="compareAnalysisForm"
         style="display:inline;"
       >
         <button type="submit" class="btn btn-primary">
@@ -263,6 +264,40 @@
   {% endif %}
 </div>
 </section>
+
+<div id="loadingModal" class="loading-modal-overlay" aria-hidden="true">
+  <div class="loading-modal-content">
+    <div style="position: relative; z-index: 1;">
+      <h3>
+        <span class="pulse-icon">AI</span>
+        COMPARISON
+      </h3>
+
+      <p id="loadingStatus" class="desc" style="color: #FF6B00; font-weight: bold; margin-bottom: 25px; min-height: 1.2em;">
+        비교분석을 준비 중입니다...
+      </p>
+
+      <div class="car-track">
+        <div id="gaugeBar" class="car-gauge-bar"></div>
+
+        <span id="trashIcon" class="trash-item" style="left: 50%;">
+          <img id="randomObstacle" src="" style="width: 35px; height: 35px; display: none;">
+        </span>
+
+        <div id="carIcon" class="car-moving-icon">
+          <img src="{{ url_for('static', filename='images/truck.png') }}" width="50" alt="truck">
+        </div>
+      </div>
+
+      <p id="progressText">0%</p>
+      <p class="completed-label">COMPLETED</p>
+
+      <p class="cancel-warning" style="color: #FF4D4D; font-size: 0.85rem; margin-top: 15px; font-weight: 500; opacity: 0.9;">
+        새로고침 시 비교분석이 취소될 수 있습니다
+      </p>
+    </div>
+  </div>
+</div>
 
 <script id="ai-analysis-data" type="application/json">
   {{ ai_analysis | tojson }}

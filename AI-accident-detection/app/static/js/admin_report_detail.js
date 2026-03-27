@@ -7,7 +7,133 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAiSummary(aiAnalysis);
   renderAiHistory(aiAnalysis);
   initMediaCanvas(aiAnalysis);
+
+  initCompareAnalysisGauge();
 });
+
+function initCompareAnalysisGauge() {
+  const form = document.getElementById("compareAnalysisForm");
+  if (!form) return;
+
+  const modal = document.getElementById("loadingModal");
+  const gaugeBar = document.getElementById("gaugeBar");
+  const carIcon = document.getElementById("carIcon");
+  const progressText = document.getElementById("progressText");
+  const trashIcon = document.getElementById("trashIcon");
+  const statusText = document.getElementById("loadingStatus");
+  const obstacleImg = document.getElementById("randomObstacle");
+
+  const loadingPhrases = [
+    "비교 대상 데이터 수집 중...",
+    "유사 사고 케이스 검색 중...",
+    "탐지 결과 정합성 검증 중...",
+    "리스크 스코어 재계산 중...",
+    "요약 보고서 생성 중...",
+    "거의 다 됐습니다. 마무리 중..."
+  ];
+
+  const obstacles = ["trash.png", "tire.png", "rock.png"];
+
+  const setVisible = (visible) => {
+    if (!modal) return;
+    modal.style.display = visible ? "flex" : "none";
+    modal.setAttribute("aria-hidden", visible ? "false" : "true");
+  };
+
+  const updateLoadingUI = (val) => {
+    const currentVal = Math.max(0, Math.min(100, Math.floor(val)));
+    if (gaugeBar) gaugeBar.style.width = currentVal + "%";
+    if (carIcon) carIcon.style.left = `calc(${currentVal}% - 15px)`;
+    if (progressText) progressText.innerText = currentVal + "%";
+
+    if (currentVal >= 50) {
+      if (trashIcon && !trashIcon.classList.contains("hidden")) {
+        trashIcon.classList.add("hidden");
+      }
+    }
+  };
+
+  const showRandomObstacle = () => {
+    if (!obstacleImg) return;
+    const selectedImg = obstacles[Math.floor(Math.random() * obstacles.length)];
+    obstacleImg.src = "/static/images/" + selectedImg;
+    obstacleImg.style.display = "block";
+    obstacleImg.style.zIndex = "9999";
+    if (trashIcon) trashIcon.classList.remove("hidden");
+  };
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if (form.dataset.running === "1") return;
+    form.dataset.running = "1";
+
+    showRandomObstacle();
+    setVisible(true);
+
+    let progress = 0;
+    updateLoadingUI(progress);
+    if (statusText) statusText.innerText = "비교분석을 시작합니다...";
+
+    const animationInterval = window.setInterval(() => {
+      if (progress < 90) {
+        progress += Math.floor(Math.random() * 3) + 1;
+
+        if (Math.floor(progress) % 15 === 0) {
+          const phraseIndex = Math.floor(Math.random() * loadingPhrases.length);
+          if (statusText) statusText.innerText = loadingPhrases[phraseIndex];
+        }
+      } else if (progress < 98) {
+        progress += 0.3;
+        if (statusText) statusText.innerText = "마무리 작업 중...";
+      }
+
+      updateLoadingUI(progress);
+    }, 200);
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        credentials: "same-origin"
+      });
+
+      if (response.ok) {
+        window.clearInterval(animationInterval);
+        updateLoadingUI(100);
+        if (statusText) statusText.innerText = "비교분석 완료!";
+
+        window.setTimeout(() => {
+          // Flask route returns a redirect to compare_detail; fetch follows it and exposes the final URL.
+          if (response.redirected && response.url) {
+            window.location.href = response.url;
+            return;
+          }
+          // Fallback: reload current detail page to refresh history.
+          window.location.reload();
+        }, 600);
+      } else {
+        window.clearInterval(animationInterval);
+        setVisible(false);
+
+        let message = "비교분석 실행에 실패했습니다.";
+        try {
+          const data = await response.json();
+          message = data.message || message;
+        } catch {
+          // ignore
+        }
+        alert(message);
+      }
+    } catch (err) {
+      window.clearInterval(animationInterval);
+      setVisible(false);
+      alert("통신 오류로 비교분석을 실행할 수 없습니다.");
+    } finally {
+      form.dataset.running = "0";
+    }
+  });
+}
 
 function renderAiSummary(aiAnalysis) {
   const summaryBox = document.getElementById("ai-summary-box");
