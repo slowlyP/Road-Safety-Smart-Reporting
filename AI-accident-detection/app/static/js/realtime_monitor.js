@@ -18,6 +18,8 @@ let CURRENT_ROUTE_RADIUS_KM = 0.5;
 let CURRENT_VISIBLE_DAYS = 180;
 let HAS_INITIAL_MAP_FIT = false;
 
+let INFO_WINDOW_CLOSE_TIMER = null;
+
 // 자동완성 관련 상태
 let ORIGIN_AUTOCOMPLETE = null;
 let DESTINATION_AUTOCOMPLETE = null;
@@ -280,22 +282,153 @@ function clearRoute() {
     hideRouteSummary();
 }
 
+function normalizeFileType(fileType) {
+    return String(fileType || "").trim();
+}
+
+function buildPreviewMediaHtml(item) {
+    const thumbnailPath = item.thumbnail_path || item.file_path || "";
+    const fileType = normalizeFileType(item.file_type);
+
+    if (!thumbnailPath) {
+        return `
+            <div style="
+                width: 100%;
+                height: 150px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f3f4f6;
+                color: #6b7280;
+                font-size: 13px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            ">
+                미리보기 없음
+            </div>
+        `;
+    }
+
+    if (fileType === "이미지") {
+        return `
+            <img
+                src="${escapeHtml(thumbnailPath)}"
+                alt="위험 미리보기"
+                style="
+                    width: 100%;
+                    height: 150px;
+                    object-fit: cover;
+                    border-radius: 10px;
+                    display: block;
+                    margin-bottom: 10px;
+                    background: #f3f4f6;
+                "
+            >
+        `;
+    }
+
+    if (fileType === "영상") {
+        return `
+            <video
+                src="${escapeHtml(thumbnailPath)}"
+                muted
+                playsinline
+                preload="metadata"
+                style="
+                    width: 100%;
+                    height: 150px;
+                    object-fit: cover;
+                    border-radius: 10px;
+                    display: block;
+                    margin-bottom: 10px;
+                    background: #111827;
+                "
+            ></video>
+        `;
+    }
+
+    return `
+        <div style="
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 13px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        ">
+            미리보기 없음
+        </div>
+    `;
+}
+
 function buildInfoWindowContent(item) {
     return `
-        <div class="map-info-window">
-            <div class="map-info-title">${escapeHtml(item.location_text || "위치 정보 없음")}</div>
-            <div class="map-info-row"><strong>위험도:</strong> ${escapeHtml(item.risk_level || "-")}</div>
-            <div class="map-info-row"><strong>장애물:</strong> ${escapeHtml(item.detected_label || "-")}</div>
-            <div class="map-info-row"><strong>접수 시간:</strong> ${escapeHtml(item.created_at || "-")}</div>
-            <div class="map-info-row"><strong>처리 상태:</strong> ${escapeHtml(item.status || "-")}</div>
-            <div class="map-info-row"><strong>신뢰도:</strong> ${escapeHtml(String(item.confidence ?? "-"))}</div>
-            <div class="map-info-row" style="margin-top: 10px;">
-                <button type="button" class="map-detail-btn" data-report-id="${item.report_id}">
-                    상세보기
-                </button>
+        <div class="map-info-window" style="width: 260px; padding: 4px 2px;">
+            ${buildPreviewMediaHtml(item)}
+
+            <div
+                class="map-info-title"
+                style="
+                    font-weight: 700;
+                    font-size: 14px;
+                    color: #111827;
+                    margin-bottom: 8px;
+                    line-height: 1.4;
+                "
+            >
+                ${escapeHtml(item.location_text || "위치 정보 없음")}
+            </div>
+
+            <div class="map-info-row" style="font-size: 13px; margin-bottom: 4px;">
+                <strong>위험도:</strong> ${escapeHtml(item.risk_level || "-")}
+            </div>
+            <div class="map-info-row" style="font-size: 13px; margin-bottom: 4px;">
+                <strong>장애물:</strong> ${escapeHtml(item.detected_label || "-")}
+            </div>
+            <div class="map-info-row" style="font-size: 13px; margin-bottom: 4px;">
+                <strong>접수 시간:</strong> ${escapeHtml(item.created_at || "-")}
+            </div>
+            <div class="map-info-row" style="font-size: 13px; margin-bottom: 4px;">
+                <strong>처리 상태:</strong> ${escapeHtml(item.status || "-")}
+            </div>
+            <div class="map-info-row" style="font-size: 13px;">
+                <strong>신뢰도:</strong> ${escapeHtml(String(item.confidence ?? "-"))}
             </div>
         </div>
     `;
+}
+
+function openMarkerPreview(marker, item) {
+    if (!realtimeMonitorInfoWindow) {
+        realtimeMonitorInfoWindow = new google.maps.InfoWindow();
+    }
+
+    if (INFO_WINDOW_CLOSE_TIMER) {
+        clearTimeout(INFO_WINDOW_CLOSE_TIMER);
+        INFO_WINDOW_CLOSE_TIMER = null;
+    }
+
+    realtimeMonitorInfoWindow.setContent(buildInfoWindowContent(item));
+    realtimeMonitorInfoWindow.open({
+        anchor: marker,
+        map: realtimeMonitorMap
+    });
+}
+
+function closeMarkerPreviewWithDelay(delay = 120) {
+    if (INFO_WINDOW_CLOSE_TIMER) {
+        clearTimeout(INFO_WINDOW_CLOSE_TIMER);
+    }
+
+    INFO_WINDOW_CLOSE_TIMER = setTimeout(() => {
+        if (realtimeMonitorInfoWindow) {
+            realtimeMonitorInfoWindow.close();
+        }
+    }, delay);
 }
 
 function createRiskListItem(item) {
@@ -509,23 +642,18 @@ function renderMapPoints(points, options = {}) {
             icon: getMarkerIconByRiskLevel(item.risk_level)
         });
 
+        marker.addListener("mouseover", () => {
+            openMarkerPreview(marker, item);
+        });
+
+        marker.addListener("mouseout", () => {
+            closeMarkerPreviewWithDelay(120);
+        });
+
         marker.addListener("click", () => {
-            if (!realtimeMonitorInfoWindow) {
-                realtimeMonitorInfoWindow = new google.maps.InfoWindow();
+            if (item.report_id) {
+                openRiskDetailModal(item.report_id);
             }
-
-            realtimeMonitorInfoWindow.setContent(buildInfoWindowContent(item));
-            realtimeMonitorInfoWindow.open({
-                anchor: marker,
-                map: realtimeMonitorMap
-            });
-
-            google.maps.event.addListenerOnce(realtimeMonitorInfoWindow, "domready", () => {
-                const btn = document.querySelector(".map-detail-btn");
-                if (btn) {
-                    btn.addEventListener("click", () => openRiskDetailModal(item.report_id));
-                }
-            });
         });
 
         realtimeMonitorMarkers.push(marker);

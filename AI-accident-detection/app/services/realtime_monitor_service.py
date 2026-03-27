@@ -116,8 +116,11 @@ class RealtimeMonitorService:
                 "detected_label": row.detected_label or "미확인",
                 "confidence": round(RealtimeMonitorService._safe_float(row.confidence), 2),
                 "created_at": RealtimeMonitorService._format_datetime(row.created_at),
-                "time_ago": RealtimeMonitorService._time_ago(row.created_at)
+                "time_ago": RealtimeMonitorService._time_ago(row.created_at),
+                "thumbnail_path": RealtimeMonitorService._normalize_file_path(getattr(row, "file_path", "")),
+                "file_type": getattr(row, "file_type", None) or "-"
             })
+
 
         return result
 
