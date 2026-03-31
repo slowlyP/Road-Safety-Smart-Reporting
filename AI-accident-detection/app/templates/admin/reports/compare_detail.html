@@ -56,18 +56,36 @@
   align-items: center;
   justify-content: center;
 }
+
 .compare-error {
-margin-top: 10px;
-border: 1px solid rgba(255,80,80,0.4);
-padding: 10px;
-border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid rgba(255,80,80,0.4);
+  padding: 10px;
+  border-radius: 8px;
+  word-break: break-all;
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-size: 13px;
+  color: #fca5a5;
+}
 
-word-break: break-all;
-white-space: normal;
-overflow-wrap: break-word;
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
 
-font-size: 13px;
-color: #fca5a5;
+.chart-box {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+@media (max-width: 1024px) {
+  .compare-grid {
+    flex-direction: column;
+  }
 }
 </style>
 {% endblock %}
@@ -110,16 +128,51 @@ color: #fca5a5;
         <span class="detail-label">실행일</span>
         <div class="detail-value">{{ compare_run.created_at }}</div>
       </div>
-    </div>
-  </div>
-  <!--차트 영역 추가-->
-  <div class="detail-card detail-card-full">
-    <h2 class="detail-card-title">모델 비교 레이더 차트</h2>
 
-    <div class="chart-box" style="height: 420px;">
-      <canvas id="compareRadarChart"></canvas>
+      {% if compare_run.source_type == '영상' %}
+      <div class="detail-item">
+        <span class="detail-label">샘플링 FPS</span>
+        <div class="detail-value">{{ compare_run.sample_fps or 5 }}</div>
+      </div>
+
+      <div class="detail-item">
+        <span class="detail-label">샘플링 프레임 수</span>
+        <div class="detail-value">{{ compare_run.total_sampled_frames or '-' }}</div>
+      </div>
+      {% endif %}
     </div>
   </div>
+
+  <!-- 차트 영역 -->
+  <div class="chart-grid">
+
+    <div class="detail-card detail-card-full">
+      <h2 class="detail-card-title">
+        {% if compare_run.source_type == '영상' %}
+          모델 비교 시간축 차트
+        {% else %}
+          모델 비교 레이더 차트
+        {% endif %}
+      </h2>
+
+      <div class="chart-box" style="height: 420px;">
+        {% if compare_run.source_type == '영상' %}
+          <canvas id="compareTimelineChart"></canvas>
+        {% else %}
+          <canvas id="compareRadarChart"></canvas>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="detail-card detail-card-full">
+      <h2 class="detail-card-title">클래스별 탐지 막대그래프</h2>
+      <div class="chart-box" style="height: 420px;">
+        <canvas id="compareClassBarChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
   <!-- 모델 비교 -->
   <div class="compare-grid">
 
@@ -142,6 +195,17 @@ color: #fca5a5;
       <div class="compare-meta">
         탐지 수: {{ r.total_detections }}
       </div>
+
+      {% if compare_run.source_type == '영상' %}
+      <div class="compare-meta">
+        탐지 프레임 수:
+        {% if r.detected_frame_count is not none %}
+          {{ r.detected_frame_count }}
+        {% else %}
+          -
+        {% endif %}
+      </div>
+      {% endif %}
 
       <div class="compare-meta">
         평균 confidence:
@@ -170,6 +234,18 @@ color: #fca5a5;
         {% endif %}
       </div>
 
+      {% if compare_run.source_type == '영상' and r.best_frame_no is not none %}
+        <div class="compare-meta">
+          대표 프레임:
+          #{{ r.best_frame_no }}
+          ({{ r.best_time_sec }}초)
+        </div>
+
+        <div class="compare-meta">
+          프레임 탐지 수: {{ r.best_detection_count }}
+        </div>
+      {% endif %}
+
       <!-- 클래스별 탐지 -->
       <div class="compare-box">
         <div class="compare-label">클래스별 탐지</div>
@@ -184,6 +260,7 @@ color: #fca5a5;
           <div>-</div>
         {% endif %}
       </div>
+
       {% if r.status == '실패' %}
         <div class="compare-error">
           <div class="compare-label">실패 사유</div>
@@ -201,23 +278,21 @@ color: #fca5a5;
 <script id="compare-results-data" type="application/json">
   {{ result_dicts | tojson }}
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   const rawData = JSON.parse(document.getElementById("compare-results-data").textContent);
+  const sourceType = "{{ compare_run.source_type }}";
 
-  function getClassCount(result, className) {
-    if (!result.result_json || !result.result_json.class_counts) return 0;
-    return result.result_json.class_counts[className] || 0;
+  function getClassCounts(result) {
+    if (!result.result_json || !result.result_json.class_counts) return {};
+    return result.result_json.class_counts;
   }
 
-  const labels = [
-    "총 탐지 수",
-    "평균 confidence(x10)",
-    "bag",
-    "box",
-    "rock",
-    "tire"
-  ];
+  function getClassCount(result, className) {
+    const counts = getClassCounts(result);
+    return counts[className] || 0;
+  }
 
   const colorMap = {
     "YOLOv8": "rgba(255, 99, 132, 0.25)",
@@ -231,39 +306,222 @@ color: #fca5a5;
     "YOLOv8-p2": "rgba(255, 206, 86, 1)"
   };
 
-  const datasets = rawData.map((result) => {
+  const allClassSet = new Set();
+  rawData.forEach((result) => {
+    const classCounts = getClassCounts(result);
+    Object.keys(classCounts).forEach((cls) => allClassSet.add(cls));
+  });
+  const classLabels = Array.from(allClassSet).sort();
+
+  if (sourceType === "영상") {
+    const ctx = document.getElementById("compareTimelineChart");
+
+    const labelSet = new Set();
+
+    rawData.forEach((result) => {
+      const timeline = result.result_json?.timeline || [];
+      timeline.forEach((item) => {
+        labelSet.add(item.time_sec);
+      });
+    });
+
+    const labels = Array.from(labelSet).sort((a, b) => a - b);
+
+    const datasets = rawData.map((result) => {
+      const modelLabel = result.optimizer_name
+        ? `${result.model_name} (${result.optimizer_name})`
+        : result.model_name;
+
+      const timeline = result.result_json?.timeline || [];
+      const timelineMap = {};
+
+      timeline.forEach((item) => {
+        timelineMap[item.time_sec] = item.count;
+      });
+
+      return {
+        label: modelLabel,
+        data: labels.map((sec) => timelineMap[sec] || 0),
+        fill: false,
+        tension: 0.25,
+        borderColor: borderColorMap[result.model_name] || "rgba(160,160,160,1)",
+        backgroundColor: borderColorMap[result.model_name] || "rgba(160,160,160,1)",
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2
+      };
+    });
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels.map(v => `${v}s`),
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1000
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#cbd5e1"
+            },
+            grid: {
+              color: "rgba(255,255,255,0.08)"
+            },
+            title: {
+              display: true,
+              text: "시간(초)",
+              color: "#e5e7eb"
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: "#cbd5e1",
+              precision: 0
+            },
+            grid: {
+              color: "rgba(255,255,255,0.08)"
+            },
+            title: {
+              display: true,
+              text: "탐지 수",
+              color: "#e5e7eb"
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: "#e5e7eb"
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${context.raw}개`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+  } else {
+    const ctx = document.getElementById("compareRadarChart");
+
+    const labels = [
+      "총 탐지 수",
+      "평균 confidence(x10)",
+      "bag",
+      "box",
+      "rock",
+      "tire"
+    ];
+
+    const datasets = rawData.map((result) => {
+      const modelLabel = result.optimizer_name
+        ? `${result.model_name} (${result.optimizer_name})`
+        : result.model_name;
+
+      return {
+        label: modelLabel,
+        data: [
+          result.total_detections || 0,
+          (result.avg_confidence || 0) * 10,
+          getClassCount(result, "bag"),
+          getClassCount(result, "box"),
+          getClassCount(result, "rock"),
+          getClassCount(result, "tire")
+        ],
+        fill: true,
+        backgroundColor: colorMap[result.model_name] || "rgba(160, 160, 160, 0.2)",
+        borderColor: borderColorMap[result.model_name] || "rgba(160, 160, 160, 1)",
+        pointBackgroundColor: borderColorMap[result.model_name] || "rgba(160, 160, 160, 1)",
+        pointBorderColor: "#ffffff",
+        pointHoverBackgroundColor: "#ffffff",
+        pointHoverBorderColor: borderColorMap[result.model_name] || "rgba(160, 160, 160, 1)",
+        borderWidth: 2
+      };
+    });
+
+    new Chart(ctx, {
+      type: "radar",
+      data: {
+        labels: labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 1000
+        },
+        scales: {
+          r: {
+            beginAtZero: true,
+            ticks: {
+              backdropColor: "transparent",
+              color: "#cbd5e1"
+            },
+            grid: {
+              color: "rgba(255,255,255,0.12)"
+            },
+            angleLines: {
+              color: "rgba(255,255,255,0.12)"
+            },
+            pointLabels: {
+              color: "#e5e7eb",
+              font: {
+                size: 13
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: "#e5e7eb"
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ${context.raw}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 공통 클래스별 막대그래프
+  const classBarCtx = document.getElementById("compareClassBarChart");
+
+  const classBarDatasets = rawData.map((result) => {
     const modelLabel = result.optimizer_name
       ? `${result.model_name} (${result.optimizer_name})`
       : result.model_name;
 
     return {
       label: modelLabel,
-      data: [
-        result.total_detections || 0,
-        (result.avg_confidence || 0) * 10,
-        getClassCount(result, "bag"),
-        getClassCount(result, "box"),
-        getClassCount(result, "rock"),
-        getClassCount(result, "tire")
-      ],
-      fill: true,
-      backgroundColor: colorMap[result.model_name] || "rgba(160, 160, 160, 0.2)",
+      data: classLabels.map((cls) => getClassCount(result, cls)),
+      backgroundColor: colorMap[result.model_name] || "rgba(160, 160, 160, 0.25)",
       borderColor: borderColorMap[result.model_name] || "rgba(160, 160, 160, 1)",
-      pointBackgroundColor: borderColorMap[result.model_name] || "rgba(160, 160, 160, 1)",
-      pointBorderColor: "#ffffff",
-      pointHoverBackgroundColor: "#ffffff",
-      pointHoverBorderColor: borderColorMap[result.model_name] || "rgba(160, 160, 160, 1)",
       borderWidth: 2
     };
   });
 
-  const ctx = document.getElementById("compareRadarChart");
-
-  new Chart(ctx, {
-    type: "radar",
+  new Chart(classBarCtx, {
+    type: "bar",
     data: {
-      labels: labels,
-      datasets: datasets
+      labels: classLabels,
+      datasets: classBarDatasets
     },
     options: {
       responsive: true,
@@ -272,23 +530,33 @@ color: #fca5a5;
         duration: 1000
       },
       scales: {
-        r: {
-          beginAtZero: true,
+        x: {
+          stacked: false,
           ticks: {
-            backdropColor: "transparent",
             color: "#cbd5e1"
           },
           grid: {
-            color: "rgba(255,255,255,0.12)"
+            color: "rgba(255,255,255,0.08)"
           },
-          angleLines: {
-            color: "rgba(255,255,255,0.12)"
+          title: {
+            display: true,
+            text: "클래스",
+            color: "#e5e7eb"
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: "#cbd5e1",
+            precision: 0
           },
-          pointLabels: {
-            color: "#e5e7eb",
-            font: {
-              size: 13
-            }
+          grid: {
+            color: "rgba(255,255,255,0.08)"
+          },
+          title: {
+            display: true,
+            text: "탐지 수",
+            color: "#e5e7eb"
           }
         }
       },
@@ -301,7 +569,7 @@ color: #fca5a5;
         tooltip: {
           callbacks: {
             label: function(context) {
-              return `${context.dataset.label}: ${context.raw}`;
+              return `${context.dataset.label}: ${context.raw}개`;
             }
           }
         }
@@ -309,4 +577,24 @@ color: #fca5a5;
     }
   });
 </script>
+{% if compare_run.status == '진행중' %}
+<div style="margin-top: 10px; display:flex; align-items:center; gap:10px;">
+  <div class="spinner"></div>
+  <span>AI 비교분석 진행 중...</span>
+</div>
+
+<style>
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #64748b;
+  border-top: 2px solid #f97316;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+{% endif %}
 {% endblock %}

@@ -2,7 +2,7 @@
 Flask 애플리케이션을 생성하는 파일
 """
 
-from flask import Flask, session
+from flask import Flask, session, request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from .config import Config
@@ -69,6 +69,7 @@ def create_app():
         """
         is_logged_in = "user_id" in session
         is_admin = session.get("role") == "admin"
+        user_name = session.get("name")
 
         admin_pending_report_count = 0
         admin_pending_role_count = 0
@@ -86,11 +87,29 @@ def create_app():
                 RoleRequest.status == "대기"
             ).count()
 
+        endpoint = request.endpoint or ""
+        active_member = None
+
+        if endpoint.startswith("main."):
+            active_member = "kdh"
+        elif endpoint.startswith("report."):
+            active_member = "smg"
+        elif endpoint.startswith("report_list."):
+            active_member = "lhj"
+        elif endpoint.startswith("realtime_monitor."):
+            active_member = "kdk"
+        elif endpoint.startswith("admin_realtime_alert."):
+            active_member = "kdk"
+        elif endpoint.startswith("admin."):
+            active_member = "kdh"
+
         return {
             "is_logged_in": is_logged_in,
             "is_admin": is_admin,
+            "user_name": user_name,
             "admin_pending_report_count": admin_pending_report_count,
-            "admin_pending_role_count": admin_pending_role_count
+            "admin_pending_role_count": admin_pending_role_count,
+            "active_member": active_member
         }
 
     # -----------------------------

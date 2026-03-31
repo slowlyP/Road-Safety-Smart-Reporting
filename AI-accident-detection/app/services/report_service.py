@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 from app.extensions import db
 from app.models import Report, ReportFile, Detection, ReportStatusLog
-from app.services.yolo_service import detect_image, detect_video
+from ai.inference.detector import detect_image, detect_video
 
 # [기존 추가] 실시간 위험 알림 서비스 import
 from app.services.realtime_alert_service import RealtimeAlertService

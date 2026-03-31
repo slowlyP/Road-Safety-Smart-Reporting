@@ -12,10 +12,11 @@
 - GET /admin/reports/compare/<compare_run_id> : 비교분석 상세 조회
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session,jsonify
 
 from app.services.admin_report_service import AdminReportService
 from app.services.admin_ai_compare_service import AdminAICompareService
+from app.repositories.ai_compare_repository import AiCompareRepository
 
 
 admin_report_bp = Blueprint(
@@ -147,13 +148,11 @@ def update_report_status(report_id):
 
 @admin_report_bp.route("/<int:report_id>/compare/run", methods=["POST"])
 def run_compare_analysis(report_id):
-    """
-    관리자 비교분석 실행
-    """
+    if "user_id" not in session:
+        return jsonify({"success": False, "message": "로그인 필요"}), 401
 
-    check = _check_admin()
-    if check:
-        return check
+    if session.get("role") != "admin":
+        return jsonify({"success": False, "message": "권한 없음"}), 403
 
     admin_id = session.get("user_id")
 
@@ -162,17 +161,19 @@ def run_compare_analysis(report_id):
             report_id=report_id,
             requested_by=admin_id
         )
-        return redirect(
-            url_for("admin_report.compare_detail", compare_run_id=compare_run.id)
-        )
 
+        return jsonify({
+            "success": True,
+            "compare_run_id": compare_run.id,
+            "message": "비교분석이 시작되었습니다."
+        })
     except ValueError as e:
-        flash(str(e), "danger")
-        return redirect(url_for("admin_report.report_detail", report_id=report_id))
+        return jsonify({"success": False, "message": str(e)}), 400
     except Exception as e:
-        flash(f"비교분석 중 오류가 발생했습니다: {str(e)}", "danger")
-        return redirect(url_for("admin_report.report_detail", report_id=report_id))
-
+        return jsonify({
+            "success": False,
+            "message": f"비교분석 중 오류가 발생했습니다: {str(e)}"
+        }), 500
 
 @admin_report_bp.route("/<int:report_id>/compare/history", methods=["GET"])
 def compare_history(report_id):
@@ -201,6 +202,39 @@ def compare_history(report_id):
         compare_runs=compare_runs
     )
 
+@admin_report_bp.route("/compare/<int:compare_run_id>/status", methods=["GET"])
+def compare_status(compare_run_id):
+    if "user_id" not in session:
+        return jsonify({"success": False, "message": "로그인 필요"}), 401
+
+    if session.get("role") != "admin":
+        return jsonify({"success": False, "message": "권한 없음"}), 403
+
+    compare_run = AiCompareRepository.get_run_by_id(compare_run_id)
+    if not compare_run:
+        return jsonify({"success": False, "message": "run 없음"}), 404
+
+    results = AiCompareRepository.get_results_by_run(compare_run_id) or []
+
+    total_expected = 3
+    done_count = sum(1 for r in results if r.status in ["완료", "실패"])
+
+    models = [
+        {
+            "model_name": r.model_name,
+            "status": r.status,
+            "error_message": r.error_message
+        }
+        for r in results
+    ]
+
+    return jsonify({
+        "success": True,
+        "run_status": compare_run.status,
+        "total_count": total_expected,
+        "done_count": done_count,
+        "models": models
+    })
 
 @admin_report_bp.route("/compare/<int:compare_run_id>", methods=["GET"])
 def compare_detail(compare_run_id):

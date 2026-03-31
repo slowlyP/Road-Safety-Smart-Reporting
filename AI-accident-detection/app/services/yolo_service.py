@@ -1,17 +1,43 @@
 import os
-from ultralytics import YOLO
 import cv2
+from ultralytics import YOLO, RTDETR
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MODEL_PATH = os.path.join(BASE_DIR, "ai", "models", "best.pt")
 
-print("MODEL_PATH:", MODEL_PATH)
+IMAGE_MODEL_PATH = os.path.join(BASE_DIR, "ai", "models", "best_image.pt")   # RT-DETR
+VIDEO_MODEL_PATH = os.path.join(BASE_DIR, "ai", "models", "best_video.pt")   # YOLOv8
 
-model = YOLO(MODEL_PATH)
+print("IMAGE_MODEL_PATH:", IMAGE_MODEL_PATH)
+print("VIDEO_MODEL_PATH:", VIDEO_MODEL_PATH)
+
+# 모델 캐싱
+_model_cache = {}
+
+
+def get_model(model_type):
+    if model_type in _model_cache:
+        return _model_cache[model_type]
+
+    if model_type == "image":
+        model = RTDETR(IMAGE_MODEL_PATH)   # 이미지 = RT-DETR
+    elif model_type == "video":
+        model = YOLO(VIDEO_MODEL_PATH)     # 영상 = YOLOv8
+    else:
+        raise ValueError(f"지원하지 않는 모델 타입입니다: {model_type}")
+
+    _model_cache[model_type] = model
+    return model
 
 
 def detect_image(image_path):
-    results = model(image_path)
+    model = get_model("image")
+    results = model.predict(
+        source=image_path,
+        conf=0.25,
+        save=False,
+        verbose=False
+    )
+
     detections = []
 
     for r in results:
@@ -30,6 +56,8 @@ def detect_image(image_path):
 
 
 def detect_video(video_path):
+    model = get_model("video")
+
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         raise ValueError("영상 파일을 열 수 없습니다.")
@@ -43,7 +71,7 @@ def detect_video(video_path):
 
     all_detections = []
     frame_count = 0
-    sample_interval = 5  # 1이면 매 프레임, 2면 2프레임마다
+    sample_interval = 5
 
     while True:
         ret, frame = cap.read()
@@ -57,7 +85,13 @@ def detect_video(video_path):
 
         time_sec = frame_count / fps
 
-        results = model(frame, conf=0.25, imgsz=832)
+        results = model.predict(
+            source=frame,
+            conf=0.25,
+            imgsz=832,
+            save=False,
+            verbose=False
+        )
 
         for r in results:
             for box in r.boxes:
