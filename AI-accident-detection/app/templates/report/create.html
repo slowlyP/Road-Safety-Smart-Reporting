@@ -7,7 +7,7 @@
 {% block content %}
 <div class="report-wrapper">
     <header class="report-header">
-        <h1><i class="fa-solid fa-triangle-exclamation"></i> ROADGUARD AI</h1>
+        <h1><i class="fa-solid fa-triangle-exclamation"></i> 404 R·N·F AI</h1>
         <p>AI 기반 도로 위험 요소 신고 시스템</p>
     </header>
 
@@ -26,18 +26,19 @@
         <section class="form-section">
             <h3><i class="fa-solid fa-location-dot"></i> 발생 위치</h3>
             <div class="location-group">
-                <input type="text" id="location_text" name="location_text" placeholder="주소를 입력하거나 지도를 클릭하세요" readonly>
+                <input type="text" id="location_text" name="location_text"
+                       placeholder="지도를 클릭하거나 사진을 업로드하세요" required readonly>
                 <button type="button" id="openMapBtn" class="btn-secondary" onclick="openMapModal()">지도에서 선택하기</button>
             </div>
-            <input type="hidden" id="latitude" name="latitude">
-            <input type="hidden" id="longitude" name="longitude">
+            <input type="hidden" id="latitude" name="latitude" required>
+            <input type="hidden" id="longitude" name="longitude" required>
         </section>
 
         <section class="form-section">
             <h3><i class="fa-solid fa-pen-to-square"></i> 신고 정보</h3>
             <div class="input-group">
                 <label>제목</label>
-                <input type="text" name="title" required placeholder="예: 2차선 도로 낙하물 발견">
+                <input type="text" name="title" placeholder="입력하지 않으면 AI가 자동으로 작성합니다">
             </div>
             <div class="input-group">
                 <label>상세 내용</label>
@@ -70,9 +71,34 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+
 <script src="{{ url_for('static', filename='js/report.js') }}"></script>
+
 {# 하드코딩된 키 대신 서버에서 넘겨준 google_maps_api_key 변수를 사용합니다 #}
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap"></script>
+
+<script>
+    document.getElementById('reportForm').addEventListener('submit', function(e) {
+        // 폼 필드 데이터 가져오기
+        const locationText = document.getElementById('location_text').value.trim();
+        const lat = document.getElementById('latitude').value;
+
+        // 위치 정보가 '없음'이거나 비어있을 경우 제출 차단
+        if (!locationText || locationText === '위치 정보 없음' || !lat || parseFloat(lat) === 0) {
+            e.preventDefault(); // 서버 전송 중단
+            alert("⚠️ 위치 정보가 누락되었습니다.\n사진을 업로드하여 위치를 추출하거나, 지도에서 사고 발생 지점을 선택해 주세요.");
+
+            // 지도 모달이 닫혀있다면 열어주는 함수 호출 (필요 시)
+            if (typeof openMapModal === 'function') openMapModal();
+            return false;
+        }
+
+        // 모든 검증 통과 시 로딩 모달(분석 애니메이션) 표시
+        document.getElementById('loadingModal').style.display = 'flex';
+    });
+</script>
+
 
 <div id="loadingModal" class="loading-modal-overlay">
     <div class="loading-modal-content">
@@ -81,26 +107,31 @@
                 <i class="fa-solid fa-satellite-dish pulse-icon"></i>
                 AI ANALYSIS
             </h3>
-            
+
             <p id="loadingStatus" class="desc" style="color: #FF6B00; font-weight: bold; margin-bottom: 25px; min-height: 1.2em;">
                 도로 위 위험 요소를 분석 중입니다...
             </p>
-            
+
             <div class="car-track">
                 <div id="gaugeBar" class="car-gauge-bar"></div>
-                
+
                 <span id="trashIcon" class="trash-item" style="left: 50%;">
                     <img id="randomObstacle" src="" style="width: 35px; height: 35px; display: none;">
                 </span>
-                
+
                 <div id="carIcon" class="car-moving-icon">
                     <img src="{{ url_for('static', filename='images/truck.png') }}" width="50">
                 </div>
             </div>
-            
+
             <p id="progressText">0%</p>
             <p class="completed-label">COMPLETED</p>
+
+            <p class="cancel-warning" style="color: #FF4D4D; font-size: 0.85rem; margin-top: 15px; font-weight: 500; opacity: 0.9;">
+                <i class="fa-solid fa-circle-exclamation"></i> 새로고침 시 신고가 취소됩니다
+            </p>
         </div>
     </div>
 </div>
+
 {% endblock %}
