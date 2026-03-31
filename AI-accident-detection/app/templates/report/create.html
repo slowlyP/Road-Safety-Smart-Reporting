@@ -26,7 +26,7 @@
         <section class="form-section">
             <h3><i class="fa-solid fa-location-dot"></i> 발생 위치</h3>
             <div class="location-group">
-                <input type="text" id="location_text" name="location_text" 
+                <input type="text" id="location_text" name="location_text"
                        placeholder="지도를 클릭하거나 사진을 업로드하세요" required readonly>
                 <button type="button" id="openMapBtn" class="btn-secondary" onclick="openMapModal()">지도에서 선택하기</button>
             </div>
@@ -88,7 +88,7 @@
         if (!locationText || locationText === '위치 정보 없음' || !lat || parseFloat(lat) === 0) {
             e.preventDefault(); // 서버 전송 중단
             alert("⚠️ 위치 정보가 누락되었습니다.\n사진을 업로드하여 위치를 추출하거나, 지도에서 사고 발생 지점을 선택해 주세요.");
-            
+
             // 지도 모달이 닫혀있다면 열어주는 함수 호출 (필요 시)
             if (typeof openMapModal === 'function') openMapModal();
             return false;
@@ -107,23 +107,23 @@
                 <i class="fa-solid fa-satellite-dish pulse-icon"></i>
                 AI ANALYSIS
             </h3>
-            
+
             <p id="loadingStatus" class="desc" style="color: #FF6B00; font-weight: bold; margin-bottom: 25px; min-height: 1.2em;">
                 도로 위 위험 요소를 분석 중입니다...
             </p>
-            
+
             <div class="car-track">
                 <div id="gaugeBar" class="car-gauge-bar"></div>
-                
+
                 <span id="trashIcon" class="trash-item" style="left: 50%;">
                     <img id="randomObstacle" src="" style="width: 35px; height: 35px; display: none;">
                 </span>
-                
+
                 <div id="carIcon" class="car-moving-icon">
                     <img src="{{ url_for('static', filename='images/truck.png') }}" width="50">
                 </div>
             </div>
-            
+
             <p id="progressText">0%</p>
             <p class="completed-label">COMPLETED</p>
 
