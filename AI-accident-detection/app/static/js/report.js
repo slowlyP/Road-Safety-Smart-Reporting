@@ -15,6 +15,14 @@ const ALLOWED_TYPES = [
     'video/mp4', 'video/quicktime', 'video/x-msvideo'
 ];
 
+// [새로 추가] GPS 도분초 좌표를 실수형(Decimal)으로 변환
+function convertToDecimal(gpsArray, ref) {
+    if (!gpsArray) return null;
+    let decimal = gpsArray[0] + (gpsArray[1] / 60) + (gpsArray[2] / 3600);
+    if (ref === "S" || ref === "W") decimal = decimal * -1;
+    return decimal;
+}
+
 // 1. 구글 지도 및 검색(Autocomplete) 초기화
 function initMap() {
     const initialPos = { lat: INITIAL_LAT, lng: INITIAL_LNG }; 
@@ -173,7 +181,7 @@ function handleFiles(file) {
         return;
     }
 
-    // 2. 용량 체크 (50MB)
+    // 2. 용량 체크
     if (file.size > MAX_FILE_SIZE) {
         alert('파일 용량은 50MB를 넘을 수 없습니다.');
         fileInput.value = '';
@@ -181,53 +189,75 @@ function handleFiles(file) {
         return;
     }
 
+    // 📸 [1단계] 사진 EXIF GPS 추출 로직
+    if (file.type === "image/jpeg" || file.type === "image/jpg") {
+        EXIF.getData(file, function() {
+            const lat = EXIF.getTag(this, "GPSLatitude");
+            const lon = EXIF.getTag(this, "GPSLongitude");
+            
+            if (lat && lon) {
+                const dLat = convertToDecimal(lat, EXIF.getTag(this, "GPSLatitudeRef"));
+                const dLon = convertToDecimal(lon, EXIF.getTag(this, "GPSLongitudeRef"));
+                
+                // 위치 값은 무조건 저장
+                if (map && marker) {
+                    const latLng = new google.maps.LatLng(dLat, dLon);
+                    marker.setPosition(latLng);
+                    map.setCenter(latLng);
+                    updatePosition(latLng);
+                } else {
+                    document.getElementById("latitude").value = dLat;
+                    document.getElementById("longitude").value = dLon;
+                }
+                alert("사진의 위치 정보를 확인하여 자동 설정했습니다.");
+            } else {
+                getCurrentLocation(); 
+            }
+        });
+    } else if (file.type.startsWith('video/')) {
+        getCurrentLocation();
+    }
+
+    // --- 여기서부터 미리보기 생성 로직 (함수 안으로 들어와야 함) ---
     const previewContainer = document.getElementById('file-preview');
-    const infoText = dropZone.querySelector('p');
-    const icon = dropZone.querySelector('i');
+    // dropZone 존재 여부를 먼저 확인하여 에러 방지
+    const infoText = dropZone ? dropZone.querySelector('p') : null;
+    const icon = dropZone ? dropZone.querySelector('i') : null;
     const isVideo = file.type.startsWith('video/');
 
-    // 파일 읽기 시작
     const reader = new FileReader();
     
     reader.onload = (e) => {
         const fileSrc = e.target.result;
 
         if (isVideo) {
-            // 비디오 요소 생성
             const videoEl = document.createElement('video');
-            videoEl.src = fileSrc; // 소스 먼저 할당
+            videoEl.src = fileSrc;
             videoEl.preload = 'metadata';
 
-            // 메타데이터 로드 완료 시 실행
-            videoEl.onloadedmetadata = function() {
-                // 3. 영상 길이 체크 (30초)
+            videoEl.addEventListener('loadedmetadata', function() {
                 if (videoEl.duration > MAX_VIDEO_DURATION) {
-                    alert(`영상 길이는 최대 30초를 초과할 수 없습니다. (현재: ${Math.floor(videoEl.duration)}초)`);
-                    fileInput.value = ''; 
-                    resetPreview();
-                    return;
+                    alert(`영상 길이는 30초 이하만 가능합니다.`);
+                    fileInput.value = ''; resetPreview(); return;
                 }
-
-                // 검증 통과 후 화면 표시
                 videoEl.controls = true;
                 videoEl.autoplay = true;
                 videoEl.muted = true;
                 videoEl.classList.add('inner-preview');
 
-                previewContainer.innerHTML = ''; // 기존 내용 삭제
+                previewContainer.innerHTML = ''; 
                 previewContainer.appendChild(videoEl);
                 previewContainer.style.display = 'flex';
                 
                 if (infoText) infoText.style.display = 'none';
                 if (icon) icon.style.display = 'none';
-            };
+            });
         } else {
-            // 이미지일 경우 즉시 표시
             const imgEl = document.createElement('img');
             imgEl.src = fileSrc;
             imgEl.classList.add('inner-preview');
 
-            previewContainer.innerHTML = ''; // 기존 내용 삭제
+            previewContainer.innerHTML = ''; 
             previewContainer.appendChild(imgEl);
             previewContainer.style.display = 'flex';
             
@@ -237,19 +267,7 @@ function handleFiles(file) {
     };
     
     reader.readAsDataURL(file);
-}
-
-function resetPreview() {
-    const previewContainer = document.getElementById('file-preview');
-    if (previewContainer) {
-        previewContainer.innerHTML = '';
-        previewContainer.style.display = 'none';
-    }
-    const infoText = dropZone.querySelector('p');
-    const icon = dropZone.querySelector('i');
-    if (infoText) infoText.style.display = 'block';
-    if (icon) icon.style.display = 'block';
-}
+} // <--- handleFiles 함수의 진짜 끝 지점!
 
 // ---------------------------------------------------------
 // 7. 신고 제출 로직 (트럭 주행 + 랜덤 장애물 )
@@ -259,6 +277,17 @@ const reportForm = document.getElementById('reportForm');
 if (reportForm) {
     reportForm.addEventListener('submit', async (e) => {
         e.preventDefault(); 
+
+        // 🚨 [추가 포인트] 위치 정보가 없으면 차단
+        const locationText = document.getElementById('location_text').value.trim();
+        const lat = document.getElementById('latitude').value;
+
+        // 주소가 비었거나, 좌표가 0이거나, 초기값(서울시청)이면 전송 중단
+        if (!locationText || !lat || parseFloat(lat) === INITIAL_LAT) {
+            alert("⚠️ 위치 정보가 반드시 필요합니다.\n사진을 올리거나 지도에서 정확한 위치를 선택해 주세요.");
+            openMapModal(); // 지도 모달을 자동으로 열어줍니다.
+            return; 
+        }
         
         const modal = document.getElementById('loadingModal');
         const gaugeBar = document.getElementById('gaugeBar');
