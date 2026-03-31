@@ -606,6 +606,128 @@ a {
 }
 
 /* =========================
+   페이징
+========================= */
+.pagination {
+  display: flex; /* 페이지 버튼 가운데 정렬 */
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding-top: 6px;
+}
+
+.page-btn {
+  min-width: 44px; /* 공통 버튼 크기 */
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.page-btn:hover:not(:disabled) {
+  transform: translateY(-2px); /* hover 시 살짝 떠오르는 효과 */
+}
+
+.page-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.nav-btn {
+  min-width: 72px; /* 이전/다음 버튼 넓이 */
+}
+
+.prev-btn {
+  background: linear-gradient(180deg, #f2e6d7 0%, #e5d2bc 100%); /* 이전 버튼 베이지 */
+  color: #7a5738;
+  border-color: rgba(160, 120, 83, 0.22);
+}
+
+.prev-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f6ebdd 0%, #ead8c4 100%);
+  box-shadow:
+    0 8px 20px rgba(167, 132, 96, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.next-btn {
+  background: linear-gradient(180deg, #cfa57d 0%, #b8875b 100%); /* 다음 버튼 진한 베이지 */
+  color: #fffdf8;
+  border-color: rgba(125, 84, 48, 0.26);
+  box-shadow:
+    0 10px 22px rgba(184, 135, 91, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+.next-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #d8ae85 0%, #c08f62 100%);
+  box-shadow:
+    0 12px 26px rgba(184, 135, 91, 0.36),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.number-btn {
+  background: rgba(20, 28, 46, 0.92); /* 기본 숫자 버튼 */
+  color: #d7e0ec;
+  border-color: rgba(120, 138, 165, 0.18);
+}
+
+.number-btn:hover:not(:disabled) {
+  background: rgba(29, 40, 64, 0.98);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.number-btn.active {
+  background: linear-gradient(180deg, #ff8a4c 0%, #ff6b35 100%); /* 현재 페이지 강조 */
+  color: #ffffff;
+  border-color: rgba(255, 160, 96, 0.32);
+  box-shadow:
+    0 10px 24px rgba(255, 107, 53, 0.36),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.number-btn.active:hover {
+  background: linear-gradient(180deg, #ff9257 0%, #ff733e 100%);
+}
+
+.page-btn:disabled {
+  background: rgba(130, 137, 148, 0.2); /* 비활성 버튼 흐리게 */
+  color: rgba(230, 233, 239, 0.38);
+  border-color: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.72;
+}
+
+.page-ellipsis {
+  display: inline-flex; /* ... 표시 스타일 */
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 44px;
+  color: rgba(230, 236, 245, 0.75);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+/* =========================
    반응형
 ========================= */
 @media (max-width: 1100px) {
@@ -658,5 +780,26 @@ a {
 
   .detail-btn {
     width: 100%;
+  }
+
+  .pagination {
+    gap: 8px; /* 모바일에서 페이지 버튼 간격 축소 */
+  }
+
+  .page-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  .nav-btn {
+    min-width: 64px;
+  }
+
+  .page-ellipsis {
+    height: 40px;
+    font-size: 16px;
   }
 }

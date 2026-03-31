@@ -7,10 +7,8 @@ from app.repositories.user_repository import UserRepository
 report_list_bp = Blueprint("report_list", __name__, url_prefix="/reports")
 
 
-
 @report_list_bp.route("/my-page", methods=["GET"])
-def my_reports_page():                                                # 🔹 사용자정보 불러오기
-    # 세션 키 이름을 프로젝트 공통 규칙(user_id, username, email, name, role)에 맞춤
+def my_reports_page():  # 내 신고 목록 페이지 + 사용자 정보 화면 렌더링
     user_id = session.get("user_id")
 
     if not user_id:
@@ -30,7 +28,7 @@ def my_reports_page():                                                # 🔹 사
 
 
 @report_list_bp.route("/my", methods=["GET"])
-def get_my_reports():                                                  # 🔹 내 신고 목록 조회
+def get_my_reports():  # 내 신고 목록 페이징 조회 API
     try:
         user_id = session.get("user_id")
         if not user_id:
@@ -38,12 +36,22 @@ def get_my_reports():                                                  # 🔹 �
                 message="로그인이 필요합니다.",
                 status_code=401
             )
-        reports = ReportService.get_my_reports(user_id)
+
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 5, type=int)
+
+        reports = ReportService.get_my_reports_paginated(
+            user_id=user_id,
+            page=page,
+            per_page=per_page
+        )
+
         return success_response(
             message="내 신고 목록 조회 성공",
             data=reports,
             status_code=200
         )
+
     except Exception as e:
         print("🔥 에러:", e)
         return error_response(
@@ -54,13 +62,16 @@ def get_my_reports():                                                  # 🔹 �
 
 
 @report_list_bp.route("/<int:report_id>/page", methods=["GET"])
-def my_report_detail_page(report_id):                                    # 🔹 내 신고 상세 페이지
+def my_report_detail_page(report_id):  # 내 신고 상세 페이지 렌더링
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("auth.login"))
+
     report = ReportService.get_my_report_detail(user_id, report_id)
     if not report:
         return redirect(url_for("report_list.my_reports_page"))
+
     return render_template(
         "myreport/my_report_detail.html",
         report=report
@@ -68,13 +79,16 @@ def my_report_detail_page(report_id):                                    # 🔹 
 
 
 @report_list_bp.route("/<int:report_id>/edit", methods=["GET"])
-def edit_report_page(report_id):                                         # 🔹 내 신고 수정하기
+def edit_report_page(report_id):  # 내 신고 수정 페이지 렌더링
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("auth.login"))
+
     report = ReportService.get_my_report_detail(user_id, report_id)
     if not report:
         return redirect(url_for("report_list.my_reports_page"))
+
     return render_template(
         "myreport/my_report_edit.html",
         report=report
@@ -82,10 +96,12 @@ def edit_report_page(report_id):                                         # 🔹 
 
 
 @report_list_bp.route("/<int:report_id>/update", methods=["POST"])
-def update_report(report_id):                                             # 🔹 내 신고 수정 업데이트
+def update_report(report_id):  # 내 신고 수정 요청 처리
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("auth.login"))
+
     try:
         title = request.form.get("title")
         location_text = request.form.get("location_text")
@@ -102,7 +118,7 @@ def update_report(report_id):                                             # 🔹
             new_file=new_file,
             delete_file=delete_file
         )
-        # ReportService.update_my_report()는 (success: bool, message: str) 튜플을 반환합니다.
+
         if isinstance(result, tuple) and len(result) >= 1:
             success = bool(result[0])
             message = result[1] if len(result) >= 2 else ""
@@ -124,16 +140,20 @@ def update_report(report_id):                                             # 🔹
 
 
 @report_list_bp.route("/<int:report_id>/delete", methods=["POST"])
-def delete_report(report_id):                                              # 🔹 내 신고 삭제하기
+def delete_report(report_id):  # 내 신고 삭제 요청 처리
     user_id = session.get("user_id")
+
     if not user_id:
         return redirect(url_for("auth.login"))
+
     try:
         result = ReportService.delete_my_report(user_id, report_id)
+
         if result:
             flash("삭제되었습니다.", "success")
         else:
             flash("삭제할 수 없는 신고입니다.", "error")
+
     except Exception as e:
         print("삭제 오류:", e)
         flash("삭제 중 오류가 발생했습니다.", "error")

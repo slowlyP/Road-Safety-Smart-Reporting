@@ -17,7 +17,7 @@ class ReportService:
     MAX_FILE_SIZE = 50 * 1024 * 1024
 
     @staticmethod
-    def get_my_reports(user_id):
+    def get_my_reports(user_id):  # 내 신고 전체 목록 조회
         reports = ReportRepository.find_my_reports(user_id)
         if not reports:
             return []
@@ -26,6 +26,7 @@ class ReportService:
         for report in reports:
             report_file = ReportRepository.find_active_file_by_report_id(report.id)
             file_type = "일반"
+
             if report_file and report_file.file_type:
                 file_type = report_file.file_type
 
@@ -39,10 +40,50 @@ class ReportService:
                 "created_at": report.created_at.strftime("%Y-%m-%d %H:%M") if report.created_at else "-",
                 "file_type": file_type
             })
+
         return result
 
     @staticmethod
-    def get_my_report_detail(user_id, report_id):
+    def get_my_reports_paginated(user_id, page=1, per_page=5):  # 내 신고 목록 페이징 조회
+        reports, total_count, total_pages = ReportRepository.find_my_reports_paginated(
+            user_id=user_id,
+            page=page,
+            per_page=per_page
+        )
+
+        result = []
+        for report in reports:
+            report_file = ReportRepository.find_active_file_by_report_id(report.id)
+            file_type = "일반"
+
+            if report_file and report_file.file_type:
+                file_type = report_file.file_type
+
+            result.append({
+                "id": report.id,
+                "title": report.title,
+                "content": report.content,
+                "report_type": report.report_type,
+                "location_text": report.location_text,
+                "status": report.status,
+                "created_at": report.created_at.strftime("%Y-%m-%d %H:%M") if report.created_at else "-",
+                "file_type": file_type
+            })
+
+        return {
+            "reports": result,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total_count": total_count,
+                "total_pages": total_pages,
+                "has_prev": page > 1,
+                "has_next": page < total_pages
+            }
+        }
+
+    @staticmethod
+    def get_my_report_detail(user_id, report_id):  # 내 신고 상세 정보 조회
         report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
         if not report:
             return None
@@ -70,8 +111,8 @@ class ReportService:
             "has_detection": has_detection
         }
 
-    @staticmethod                               # 🔹 내 신고 수정하기
-    def update_my_report(user_id, report_id, title, location_text, content, new_file, delete_file):
+    @staticmethod
+    def update_my_report(user_id, report_id, title, location_text, content, new_file, delete_file):  # 내 신고 수정 처리
         try:
             report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
             if not report:
@@ -87,10 +128,9 @@ class ReportService:
 
             is_file_changed = (new_file is not None and new_file.filename.strip() != '')
 
-            # 변수 초기화
             original_name, stored_name, save_path, inferred_type, file_size = None, None, None, None, None
 
-            # 1. 새 파일 검증 및 물리적 저장
+            # 1. 새 파일 저장 및 검증
             if is_file_changed:
                 original_name = secure_filename(new_file.filename)
                 ext = os.path.splitext(original_name)[1].lower()
@@ -114,34 +154,23 @@ class ReportService:
                     frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
                     duration = frame_count / fps if fps > 0 else 0
                     cap.release()
+
                     if duration > 30:
                         os.remove(save_path)
                         return False, "영상은 30초 이내만 가능합니다."
 
-            # 2. 기존 데이터 정리
+            # 2. 기존 분석/파일 데이터 정리
             if delete_file == "Y" or is_file_changed:
-                # [추가] 외래 키 제약 조건 해결을 위한 선행 작업
-                # 삭제하려는 Detection ID들을 먼저 조회합니다.
                 old_detections = Detection.query.filter_by(report_id=report.id).all()
                 old_ids = [d.id for d in old_detections]
 
                 if old_ids:
-                    # 방법 A: 연결된 알림(Alerts)을 삭제 (가장 확실한 방법)
-                    # 만약 Alert 모델이 정의되어 있다면 Alert.query를 사용하고,
-                    # 없다면 아래처럼 직접 SQL 실행문(text)을 사용합니다.
                     from sqlalchemy import text
                     db.session.execute(
                         text("DELETE FROM alerts WHERE detection_id IN :ids"),
-                        {"ids": old_ids}
+                        {"ids": tuple(old_ids)}
                     )
 
-                    # 만약 관리자 알림 기록을 남겨둬야 한다면 삭제 대신 NULL로 업데이트할 수도 있습니다.
-                    # db.session.execute(
-                    #     text("UPDATE alerts SET detection_id = NULL WHERE detection_id IN :ids"),
-                    #     {"ids": old_ids}
-                    # )
-
-                # 이제 제약 조건이 해제되었으므로 Detection 삭제 가능
                 Detection.query.filter_by(report_id=report.id).delete()
                 db.session.flush()
 
@@ -149,9 +178,10 @@ class ReportService:
                     old_path = os.path.join("app", "static", report_file.file_path.replace("static/", ""))
                     if os.path.exists(old_path):
                         os.remove(old_path)
+
                     ReportRepository.deactivate_report_file(report_file)
 
-            # 3. 새 파일 DB 등록 및 AI 재분석
+            # 3. 새 파일 등록 및 AI 재분석
             if is_file_changed:
                 report.report_type = inferred_type
                 db_file_path = f"static/uploads/{stored_name}"
@@ -167,22 +197,19 @@ class ReportService:
                 db.session.flush()
 
                 try:
-                    print(f"[DEBUG] >>> AI 재분석 진입 완료. 경로: {save_path}")  # 진입 확인
+                    print(f"[DEBUG] >>> AI 재분석 진입 완료. 경로: {save_path}")
 
-                    # 분석 시작
                     detections = detect_image(save_path) if inferred_type == '이미지' else detect_video(save_path)
 
-                    print(f"[DEBUG] >>> AI 분석 종료. 탐지된 물체 수: {len(detections) if detections else 0}")  # 종료 확인
+                    print(f"[DEBUG] >>> AI 분석 종료. 탐지된 물체 수: {len(detections) if detections else 0}")
 
-                    # ... (이후 DB 저장 로직)
-
-                    # 위험도 판별용 변수 설정
                     highest_score = 0
                     risk_map = {"rock": 4, "tire": 3, "box": 2, "bag": 2}
                     risk_names = {4: "긴급", 3: "위험", 2: "주의", 1: "낮음"}
 
                     if detections and len(detections) > 0:
                         print(f"[DEBUG] 탐지 결과 있음: {len(detections)}개")
+
                         for d in detections:
                             label = LABEL_MAP.get(d.get('class_id'))
                             if label:
@@ -202,11 +229,10 @@ class ReportService:
                         report.status = "접수"
                         report.risk_level = risk_names.get(highest_score, "주의")
                     else:
-                        print(f"[DEBUG] 탐지 결과 없음 (오탐)")
+                        print("[DEBUG] 탐지 결과 없음 (오탐)")
                         report.status = "오탐"
                         report.risk_level = "낮음"
 
-                    # 상태 변경 로그 기록
                     db.session.add(ReportStatusLog(
                         report_id=report.id,
                         old_status=old_status,
@@ -220,7 +246,7 @@ class ReportService:
                     print(f"🔥 AI 분석 중 오류 발생: {ai_e}")
                     report.status = "분석실패"
 
-            # 4. 최종 DB 반영
+            # 4. 최종 저장
             ReportRepository.commit()
             return True, "수정이 완료되었습니다."
 
@@ -229,57 +255,55 @@ class ReportService:
             print(f"🔥 서버 오류: {e}")
             return False, f"서버 오류: {str(e)}"
 
-
     @staticmethod
-    def delete_my_report(user_id, report_id):                        # 🔹 내 신고 삭제하기
-         try:
-             report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
+    def delete_my_report(user_id, report_id):  # 내 신고 삭제 처리
+        try:
+            report, report_file = ReportRepository.find_my_report_detail(user_id, report_id)
 
-             if not report:
-                 print("[DELETE] 신고 없음")
-                 return False
+            if not report:
+                print("[DELETE] 신고 없음")
+                return False
 
-             # 1. Detection 먼저 삭제
-             detections = Detection.query.filter_by(report_id=report.id).all()
-             detection_ids = [d.id for d in detections]
+            # 1. Detection 삭제
+            detections = Detection.query.filter_by(report_id=report.id).all()
+            detection_ids = [d.id for d in detections]
 
-             # alerts 테이블이 detection_id를 참조하면 먼저 정리
-             if detection_ids:
-                 from sqlalchemy import text
-                 db.session.execute(
-                     text("DELETE FROM alerts WHERE detection_id IN :ids"),
-                     {"ids": tuple(detection_ids)}
-                 )
+            if detection_ids:
+                from sqlalchemy import text
+                db.session.execute(
+                    text("DELETE FROM alerts WHERE detection_id IN :ids"),
+                    {"ids": tuple(detection_ids)}
+                )
 
-             Detection.query.filter_by(report_id=report.id).delete()
-             db.session.flush()
+            Detection.query.filter_by(report_id=report.id).delete()
+            db.session.flush()
 
-             # 2. 상태 변경 로그 삭제
-             ReportStatusLog.query.filter_by(report_id=report.id).delete()
-             db.session.flush()
+            # 2. 상태 로그 삭제
+            ReportStatusLog.query.filter_by(report_id=report.id).delete()
+            db.session.flush()
 
-             # 3. 첨부파일 비활성화 + 실제 파일 삭제
-             if report_file:
-                 full_path = os.path.join(
-                     "app",
-                     "static",
-                     report_file.file_path.replace("static/", "")
-                 )
+            # 3. 첨부파일 비활성화 및 실제 파일 삭제
+            if report_file:
+                full_path = os.path.join(
+                    "app",
+                    "static",
+                    report_file.file_path.replace("static/", "")
+                )
 
-                 if os.path.exists(full_path):
-                     os.remove(full_path)
+                if os.path.exists(full_path):
+                    os.remove(full_path)
 
-                 ReportRepository.deactivate_report_file(report_file)
-                 db.session.flush()
+                ReportRepository.deactivate_report_file(report_file)
+                db.session.flush()
 
-             # 4. 신고 삭제
-             ReportRepository.delete_report(report)
-             ReportRepository.commit()
+            # 4. 신고 소프트 삭제
+            ReportRepository.delete_report(report)
+            ReportRepository.commit()
 
-             print("[DELETE] 삭제 성공:", report_id)
-             return True
+            print("[DELETE] 삭제 성공:", report_id)
+            return True
 
-         except Exception as e:
-             db.session.rollback()
-             print("[DELETE] 삭제 오류:", e)
-             return False
+        except Exception as e:
+            db.session.rollback()
+            print("[DELETE] 삭제 오류:", e)
+            return False

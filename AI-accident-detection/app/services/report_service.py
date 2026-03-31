@@ -1,6 +1,9 @@
 import os
 import uuid
 import cv2
+import logging
+logger = logging.getLogger(__name__)
+
 from datetime import datetime
 from werkzeug.utils import secure_filename
 
@@ -10,6 +13,9 @@ from ai.inference.detector import detect_image, detect_video
 
 # [기존 추가] 실시간 위험 알림 서비스 import
 from app.services.realtime_alert_service import RealtimeAlertService
+
+# [LLM 추가] AI 텍스트 생성 서비스 import
+from app.services.llm_service import generate_report_text
 
 
 LABEL_MAP = {
@@ -28,9 +34,12 @@ class ReportService:
     def process_report_submission(user_id, form_data, upload_file):
         saved_file_path = None
         try:
-            title = (form_data.get('title') or '').strip()
-            if not title:
-                raise ValueError("제목은 필수입니다.")
+            # -------------------------------------------------------
+            # [LLM 수정] 사용자가 제목/내용을 비워두는 것을 허용합니다.
+            # 빈칸(.strip() == '')이면 처리 로직 하단에서 AI가 채워줍니다.
+            # -------------------------------------------------------
+            user_title = (form_data.get('title') or '').strip()
+            user_content = (form_data.get('content') or '').strip()
 
             if not upload_file or upload_file.filename == '':
                 raise ValueError("첨부된 파일이 없습니다.")
@@ -98,10 +107,15 @@ class ReportService:
             # -------------------------------------------------------
             # 기존 Report 생성 로직
             # -------------------------------------------------------
+            safe_initial_title = (
+                user_title.strip() if user_title and user_title.strip()
+                else "도로 낙하물 의심 신고"
+            )
+
             new_report = Report(
                 user_id=user_id,
-                title=title,
-                content=form_data.get('content'),
+                title=safe_initial_title,  
+                content=user_content,
                 report_type=final_report_type,
                 location_text=form_data.get('location_text') or '위치 정보 없음',
                 latitude=latitude,
@@ -110,7 +124,7 @@ class ReportService:
                 created_at=datetime.now()
             )
             db.session.add(new_report)
-            db.session.flush()
+            db.session.flush() # DB ID 발급 완료
 
             # -------------------------------------------------------
             # 기존 파일 저장 로직
@@ -196,6 +210,7 @@ class ReportService:
                 old_status = None
                 new_status = "접수"
                 highest_score = 0
+                detected_labels = [] # [LLM 추가] 탐지된 객체 이름을 담을 리스트
 
                 risk_score_map = {
                     "rock": 4,
@@ -228,6 +243,10 @@ class ReportService:
                         bbox = d.get('bbox', [0, 0, 0, 0])
                         label = LABEL_MAP[d['class_id']]
                         base_score = risk_score_map.get(label, 1)
+
+                        # LLM에게 전달하기 위해 중복 없이 라벨 수집
+                        if label not in detected_labels:
+                            detected_labels.append(label)
 
                         # 면적 가중치
                         area = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
@@ -291,9 +310,39 @@ class ReportService:
                     memo = "AI 분석 결과 낙하물 없음"
                     new_report.risk_level = "낮음"
 
+
+                # -------------------------------------------------------
+                # [LLM 추가] 최종 제목과 내용 결정 (사용자 입력 > AI 생성)
+                # -------------------------------------------------------
+                # [LLM 개선] User Override + 공백 방어 + 단일 호출 구조
+                need_ai = False
+
+                if not user_title or not user_title.strip():
+                    need_ai = True
+
+                if not user_content or not user_content.strip():
+                    need_ai = True
+
+                if need_ai:
+                    # 1. 주소 정보 가져오기 (없으면 기본값 "전방 도로")
+                    address = form_data.get('location_text') or "전방 도로"
+                    
+                    # 2. AI 호출 시 주소(location_address) 인자 추가
+                    ai_text = generate_report_text(detected_labels, location_address=address)
+
+                    if not user_title or not user_title.strip():
+                        new_report.title = ai_text['title']
+
+                    if not user_content or not user_content.strip():
+                        new_report.content = ai_text['content']
+                else:
+                    new_report.title = user_title.strip()
+                    new_report.content = user_content.strip()
+
                 # -------------------------------------------------------
                 # 기존 상태 로그 저장 로직
                 # -------------------------------------------------------
+                
                 if old_status != new_status:
                     new_report.status = new_status
                     db.session.add(
@@ -308,8 +357,21 @@ class ReportService:
                     )
 
             except Exception as ai_e:
-                print(f"AI Error: {ai_e}")
+                # 1. 에러 로그 기록
+                logger.error(f"🚨 [ReportService AI Error] {ai_e}")
+                
+                # 2. 분석 상태를 기본 '접수'로 유지
                 new_report.status = "접수"
+                
+                # 3. [GPT 제안 코드 적용] 사용자가 입력하지 않았다면 기본 문구로 채움
+                if not user_title or not user_title.strip():
+                    new_report.title = "도로 낙하물 의심 신고 (상세 분석 대기)"
+                
+                if not user_content or not user_content.strip():
+                    new_report.content = "시스템 분석이 지연되어 기본 접수 되었습니다."
+                    
+                # 4. 에러 상황을 경고 로그로 남김
+                logger.warning(f"⚠️ [LLM Fallback 작동] AI 에러로 인해 기본 텍스트가 삽입되었습니다. (user_id: {user_id})")
 
             # -------------------------------------------------------
             # 기존 DB commit

@@ -1,15 +1,19 @@
+let currentPage = 1; // 현재 페이지 저장
+const perPage = 5;   // 한 페이지당 5개
+
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadMyReports();
+  await loadMyReports(1);
 });
 
-async function loadMyReports() {
+async function loadMyReports(page = 1) { // 신고 목록 + 페이징 데이터 불러오기
   const reportList = document.getElementById("report-list");
   const emptyBox = document.getElementById("empty-box");
   const todayDetectList = document.getElementById("today-detect-list");
   const todayDetectEmpty = document.getElementById("today-detect-empty");
+  const paginationBox = document.getElementById("pagination");
 
   try {
-    const response = await fetch("/reports/my", {
+    const response = await fetch(`/reports/my?page=${page}&per_page=${perPage}`, {
       method: "GET",
       credentials: "include"
     });
@@ -24,49 +28,162 @@ async function loadMyReports() {
       if (todayDetectList) {
         todayDetectList.innerHTML = "";
       }
+
       if (todayDetectEmpty) {
         todayDetectEmpty.style.display = "block";
         todayDetectEmpty.textContent = result.message || "오늘 탐지 기록을 불러오지 못했습니다.";
       }
+
+      if (paginationBox) {
+        paginationBox.innerHTML = "";
+      }
+
       return;
     }
 
-    const reports = result.data || [];
+    const reports = result.data?.reports || [];
+    const pagination = result.data?.pagination || {
+      page: 1,
+      total_pages: 1,
+      has_prev: false,
+      has_next: false
+    };
 
-    updateSummary(reports);
-    renderTodayDetect(reports);
+    currentPage = pagination.page;
+
+    updateSummary(reports);       // 상단 통계 업데이트
+    renderTodayDetect(reports);   // 오늘 탐지 기록 렌더링
 
     if (reports.length === 0) {
       reportList.innerHTML = "";
       emptyBox.style.display = "block";
       emptyBox.textContent = "등록한 신고가 없습니다.";
+
+      if (paginationBox) {
+        paginationBox.innerHTML = "";
+      }
+
       return;
     }
 
     emptyBox.style.display = "none";
     reportList.innerHTML = reports.map(report => createReportCard(report)).join("");
 
+    renderPagination(pagination); // 페이지 버튼 렌더링
+
   } catch (error) {
     reportList.innerHTML = "";
     emptyBox.style.display = "block";
     emptyBox.textContent = "서버와 통신 중 오류가 발생했습니다.";
 
-    const todayDetectList = document.getElementById("today-detect-list");
-    const todayDetectEmpty = document.getElementById("today-detect-empty");
-
     if (todayDetectList) {
       todayDetectList.innerHTML = "";
     }
+
     if (todayDetectEmpty) {
       todayDetectEmpty.style.display = "block";
       todayDetectEmpty.textContent = "오늘 탐지 기록을 불러오지 못했습니다.";
+    }
+
+    if (paginationBox) {
+      paginationBox.innerHTML = "";
     }
 
     console.error(error);
   }
 }
 
-function updateSummary(reports) {
+function renderPagination(pagination) { // 페이지 버튼 생성
+  const paginationBox = document.getElementById("pagination");
+  if (!paginationBox) return;
+
+  paginationBox.innerHTML = "";
+
+  const { page, total_pages, has_prev, has_next } = pagination;
+
+  if (total_pages <= 1) return;
+
+  let html = "";
+
+  html += `
+    <button
+      class="page-btn nav-btn prev-btn"
+      ${!has_prev ? "disabled" : ""}
+      onclick="loadMyReports(${page - 1})"
+    >
+      이전
+    </button>
+  `;
+
+  const pages = getPageNumbers(page, total_pages);
+
+  pages.forEach((item) => {
+    if (item === "...") {
+      html += `<span class="page-ellipsis">...</span>`;
+    } else {
+      html += `
+        <button
+          class="page-btn number-btn ${item === page ? "active" : ""}"
+          onclick="loadMyReports(${item})"
+        >
+          ${item}
+        </button>
+      `;
+    }
+  });
+
+  html += `
+    <button
+      class="page-btn nav-btn next-btn"
+      ${!has_next ? "disabled" : ""}
+      onclick="loadMyReports(${page + 1})"
+    >
+      다음
+    </button>
+  `;
+
+  paginationBox.innerHTML = html;
+}
+
+function getPageNumbers(currentPage, totalPages) { // 10페이지 이상일 때 ... 처리
+  const pages = [];
+
+  if (totalPages <= 10) {
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  if (currentPage <= 5) {
+    pages.push(1, 2, 3, 4, 5, 6, 7, "...", totalPages);
+    return pages;
+  }
+
+  if (currentPage >= totalPages - 4) {
+    pages.push(1, "...");
+    for (let i = totalPages - 6; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  pages.push(
+    1,
+    "...",
+    currentPage - 2,
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    currentPage + 2,
+    "...",
+    totalPages
+  );
+
+  return pages;
+}
+
+function updateSummary(reports) { // 상단 통계 계산
   const total = reports.length;
   const received = reports.filter(report => report.status === "접수").length;
   const checking = reports.filter(report => report.status === "확인중").length;
@@ -80,7 +197,7 @@ function updateSummary(reports) {
   document.getElementById("count-done").textContent = done;
 }
 
-function renderTodayDetect(reports) {
+function renderTodayDetect(reports) { // 오늘 신고 3개 표시
   const todayDetectList = document.getElementById("today-detect-list");
   const todayDetectEmpty = document.getElementById("today-detect-empty");
 
@@ -105,7 +222,7 @@ function renderTodayDetect(reports) {
     .join("");
 }
 
-function createTodayDetectItem(report) {
+function createTodayDetectItem(report) { // 오늘 탐지 기록 카드 생성
   const title = escapeHtml(report.title || "-");
   const location = escapeHtml(report.location_text || "위치 정보 없음");
   const time = escapeHtml(extractTime(report.created_at || "-"));
@@ -126,7 +243,7 @@ function createTodayDetectItem(report) {
   `;
 }
 
-function createReportCard(report) {
+function createReportCard(report) { // 신고 카드 생성
   return `
     <article class="report-card">
       <div class="report-top">
@@ -151,7 +268,7 @@ function createReportCard(report) {
   `;
 }
 
-function getStatusClass(status) {
+function getStatusClass(status) { // 상태 배지 클래스 반환
   if (status === "접수") return "badge-status-received";
   if (status === "확인중") return "badge-status-checking";
   if (status === "처리완료" || status === "처리 완료") return "badge-status-done";
@@ -159,21 +276,21 @@ function getStatusClass(status) {
   return "badge-location";
 }
 
-function getRiskClass(status) {
+function getRiskClass(status) { // 위험도 색상 클래스 반환
   if (status === "처리완료" || status === "처리 완료") return "safe";
   if (status === "확인중") return "warning";
   if (status === "오탐") return "safe";
   return "danger";
 }
 
-function getRiskLabel(status) {
+function getRiskLabel(status) { // 위험도 텍스트 반환
   if (status === "처리완료" || status === "처리 완료") return "저위험";
   if (status === "확인중") return "중위험";
   if (status === "오탐") return "저위험";
   return "고위험";
 }
 
-function isToday(createdAt) {
+function isToday(createdAt) { // 오늘 날짜인지 확인
   if (!createdAt) return false;
 
   const dateOnly = createdAt.split(" ")[0];
@@ -187,7 +304,7 @@ function isToday(createdAt) {
   return dateOnly === todayStr;
 }
 
-function extractTime(createdAt) {
+function extractTime(createdAt) { // 시간만 추출
   if (!createdAt) return "-";
 
   const parts = createdAt.split(" ");
@@ -201,7 +318,7 @@ function extractTime(createdAt) {
   return parts[1];
 }
 
-function escapeHtml(value) {
+function escapeHtml(value) { // HTML 특수문자 이스케이프 처리
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
