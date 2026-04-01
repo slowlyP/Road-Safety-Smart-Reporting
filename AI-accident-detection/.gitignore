@@ -46,4 +46,7 @@ Thumbs.db
 # =========================
 *.log
 
-
+venv_311/
+app/static/uploads/
+*.mp4
+*.zip
