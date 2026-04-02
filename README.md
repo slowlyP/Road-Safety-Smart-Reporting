@@ -70,25 +70,7 @@ report_service.py: 서버 리소스 보호를 위한 파일 검증
 ```
   
 
-### 3. 시스템 연동 및 데이터 정합성 설계
-- **실시간 연동:** 팀원이 구현한 WebSocket 기반 알림 시스템이 백엔드 로직과 유기적으로 작동하도록 인터페이스 설계.
-- **트랜잭션 관리:** 데이터베이스 저장이 최종 성공(`commit`)한 시점에만 실시간 알림이 발송되도록 제어하여, 에러 발생 시 잘못된 알림이 전송되는 혼선 방지.
-```
-# report_service.py: 데이터 무결성을 위한 트랜잭션 관리
-try:
-    # 1. DB에 신고 정보 저장 (Transaction 시작)
-    db.session.add(new_report)
-    db.session.commit() # DB 확정(Commit)
 
-    # 2. DB 저장이 성공한 경우에만 실시간 알림 서비스(WebSocket) 호출
-    if realtime_alert_result:
-        RealtimeAlertService.emit_realtime_alert(realtime_alert_result["payload"])
-
-except Exception as e:
-    db.session.rollback() # 에러 발생 시 DB 원상복구(Rollback)
-    if saved_file_path and os.path.exists(saved_file_path):
-        os.remove(saved_file_path) # 실패한 데이터의 물리 파일까지 즉시 삭제
-```
 
 ## 🛠️ Technical Decision
 - **Layered Architecture:** `Route - Service - AI Service`로 계층을 분리하여 코드의 독립성과 유지보수성 향상.
