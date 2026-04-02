@@ -68,8 +68,27 @@ report_service.py: 서버 리소스 보호를 위한 파일 검증
       if ext not in ReportService.ALLOWED_EXTENSIONS:
         raise ValueError(f"허용되지 않는 파일 형식입니다: {ext}")
 ```
-  
 
+### 3. 견고한 에러 핸들링 및 서버 리소스 관리
+- **Atomic Operation 지향:** 데이터베이스 저장 과정에서 예외 발생 시, `db.session.rollback()`을 통해 데이터 일관성을 유지.
+- **물리 파일 자동 삭제:** DB 저장이 실패할 경우, 서버에 이미 업로드된 이미지/영상 파일을 `os.remove()`로 즉시 삭제하여 서버 저장 공간 낭비(Orphan Files)를 원천 차단.
+- **보안 및 안정성:** 트라이-익셉트(try-except) 구조를 통해 예상치 못한 런타임 에러에도 서버가 다운되지 않고 적절한 에러 메시지를 반환하도록 설계.
+```
+# report_service.py: 예외 발생 시 데이터 및 리소스 복구 로직
+try:
+    db.session.add(new_report)
+    db.session.commit() # 최종 확정
+    
+except Exception as e:
+    db.session.rollback() # DB 상태를 이전으로 되돌림
+    
+    # DB 저장 실패 시 서버에 남은 쓸모없는 물리 파일까지 삭제하여 리소스 보호
+    if saved_file_path and os.path.exists(saved_file_path):
+        os.remove(saved_file_path)
+    
+    logger.error(f"🚨 [신고 접수 실패] 리소스 복구 완료: {e}")
+    raise e
+```
 
 
 ## 🛠️ Technical Decision
